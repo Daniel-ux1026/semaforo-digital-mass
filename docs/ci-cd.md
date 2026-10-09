@@ -6,6 +6,10 @@ Repositorio privado: Daniel-ux1026/semaforo-digital-mass. Commits en español. U
 
 ci.yml se ejecuta con push a main/dev, pull requests y ejecución manual. Comprueba build y siete pruebas Angular con Chrome; tests Java/MySQL (Testcontainers), SpotBugs y construcción de las tres imágenes. También revisa archivos versionados por patrones de secretos. Acciones fijadas a SHA. Token de CI solo lectura; las pruebas no usan claves de OpenAI, SMTP ni acceso al servidor.
 
+CI bloquea vulnerabilidades altas/críticas de dependencias de producción y críticas de herramientas. Se actualizaron Angular CLI/build a 20.3.39, Piscina a 5.3.2, source-map-js a 1.2.2 y http-cache-semantics a 4.3.0. La alerta OAuth del SDK MCP se resuelve mediante la versión corregida que usa el CLI. Queda una alerta alta de braces 3.0.3, sin parche publicado, propagada a seis dependencias del entorno de pruebas Karma. No forma parte de la aplicación servida por Nginx. Evitar ejecutar pruebas con patrones de archivos externos; revisar el parche o la migración del ejecutor antes de aceptar ese tipo de entrada. No se desestimó la alerta ni se aplicaron degradaciones forzadas de Karma.
+
+Aviso pendiente: https://github.com/micromatch/braces/issues/70. Corrección de Piscina: https://github.com/piscinajs/piscina/security/advisories/GHSA-67c8-pqhq-4rmx.
+
 ## Entrega
 
 entrega-despliegue.yml espera CI aprobado para un push del propio repositorio en main o dev. Publica api, web y chatbot en ghcr.io/daniel-ux1026/semaforo-digital-mass con SHA completo y etiqueta de rama. La publicación usa GITHUB_TOKEN temporal con permiso packages:write. No publica imágenes desde pull requests ni forks.

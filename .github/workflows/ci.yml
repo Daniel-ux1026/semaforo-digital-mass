@@ -27,6 +27,10 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Comprobar secretos en fuentes
         run: node scripts/check-tracked-secrets.mjs
+      - name: Comprobar seguridad de dependencias
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm audit --audit-level=critical
       - name: Compilar producción
         run: npm run build
       - name: Probar Angular
