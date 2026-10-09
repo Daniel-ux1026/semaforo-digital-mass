@@ -29,7 +29,7 @@ Las migraciones backend/src/main/resources/db/migration son la fuente de estruct
 
 ## Validación
 
-Frontend: npm ci --ignore-scripts; npm run build; npm test -- --watch=false --browsers=ChromeHeadless.
+Frontend: npm ci --ignore-scripts; npm run build; npm test. Las siete pruebas usan Vitest y jsdom. Para ejecutarlas también en un navegador real: npx playwright install chromium y npm run test:browser.
 
 Backend: cd backend y ejecutar bash mvnw test en Linux o mvnw.cmd test en Windows. Docker debe estar disponible para MySQL de Testcontainers. Las pruebas usan bases temporales; no necesitan credenciales reales.
 

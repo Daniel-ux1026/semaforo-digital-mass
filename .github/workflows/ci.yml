@@ -28,15 +28,17 @@ jobs:
       - name: Comprobar secretos en fuentes
         run: node scripts/check-tracked-secrets.mjs
       - name: Comprobar seguridad de dependencias
-        run: |
-          npm audit --omit=dev --audit-level=high
-          npm audit --audit-level=critical
+        run: npm audit --audit-level=high
       - name: Compilar producción
         run: npm run build
-      - name: Probar Angular
-        run: |
-          export CHROME_BIN="$(command -v google-chrome)"
-          npm test -- --watch=false --browsers=ChromeHeadless
+      - name: Probar Angular con Vitest y DOM
+        run: npm test
+      - name: Verificar tipos de las pruebas
+        run: npx tsc --project tsconfig.spec.json --noEmit
+      - name: Preparar Chromium para pruebas de navegador
+        run: npx playwright install --with-deps chromium
+      - name: Probar Angular en Chromium
+        run: npm run test:browser
       - name: Validar fuentes de Python y flujos n8n
         run: |
           python3 -m py_compile chatbot/app.py
