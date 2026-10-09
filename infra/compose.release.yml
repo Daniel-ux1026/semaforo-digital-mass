@@ -1,0 +1,8 @@
+# Combinar con compose.yml. La versión es el SHA completo aprobado por CI.
+services:
+  api:
+    image: ${REGISTRY_PATH:?Configure REGISTRY_PATH}/api:${IMAGE_TAG:?Configure IMAGE_TAG}
+  web:
+    image: ${REGISTRY_PATH:?Configure REGISTRY_PATH}/web:${IMAGE_TAG:?Configure IMAGE_TAG}
+  chatbot:
+    image: ${REGISTRY_PATH:?Configure REGISTRY_PATH}/chatbot:${IMAGE_TAG:?Configure IMAGE_TAG}
