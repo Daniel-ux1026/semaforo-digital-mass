@@ -1,0 +1,58 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${PORT:8080}
+  forward-headers-strategy: none
+  max-http-request-header-size: 16KB
+  tomcat:
+    threads:
+      max: 40
+    max-connections: 100
+    accept-count: 40
+    connection-timeout: 10s
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3307/semaforo?connectionTimeZone=UTC}
+    username: ${DB_USER:semaforo}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    connect-retries: 20
+    connect-retries-interval: 2s
+    user: ${MIGRATION_USER:${DB_USER:semaforo}}
+    password: ${MIGRATION_PASSWORD:${DB_PASSWORD}}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: never
+logging:
+  level:
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: OFF
+app:
+  jwt-secret: ${JWT_SECRET}
+  origin: ${APP_ORIGIN:http://localhost:4200}
+  secure-cookie: ${SECURE_COOKIE:false}
+  bootstrap-dni: ${BOOTSTRAP_DNI:}
+  bootstrap-password: ${BOOTSTRAP_PASSWORD:}
+  n8n-url: ${N8N_URL:}
+  n8n-chat-url: ${N8N_CHAT_URL:}
+  n8n-token: ${N8N_TOKEN:}
+  service-token: ${SERVICE_TOKEN:}

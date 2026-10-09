@@ -1,0 +1,10 @@
+{
+ "id":"semaforo-events","name":"Semáforo · Recepción de alertas críticas","active":false,
+ "nodes":[
+  {"id":"hook","name":"Evento autenticado","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[0,0],"webhookId":"semaforo-events","parameters":{"httpMethod":"POST","path":"semaforo-events","authentication":"headerAuth","responseMode":"responseNode","options":{}},"credentials":{"httpHeaderAuth":{"id":"semaforo-webhook","name":"Semáforo webhook"}}},
+  {"id":"receipt","name":"Registrar recepción idempotente","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[260,0],"parameters":{"method":"POST","url":"http://host.docker.internal:8080/api/service/receipt","authentication":"genericCredentialType","genericAuthType":"httpHeaderAuth","sendBody":true,"specifyBody":"json","jsonBody":"={{ { eventId: $json.body.eventId } }}","options":{"timeout":5000}},"credentials":{"httpHeaderAuth":{"id":"semaforo-service","name":"Semáforo servicio"}}},
+  {"id":"reply","name":"Aceptación sin entrega WhatsApp","type":"n8n-nodes-base.respondToWebhook","typeVersion":1.4,"position":[520,0],"parameters":{"respondWith":"json","responseBody":"={{ $json }}","options":{"responseCode":200}}}
+ ],
+ "connections":{"Evento autenticado":{"main":[[{"node":"Registrar recepción idempotente","type":"main","index":0}]]},"Registrar recepción idempotente":{"main":[[{"node":"Aceptación sin entrega WhatsApp","type":"main","index":0}]]}},
+ "settings":{"executionOrder":"v1"}
+}

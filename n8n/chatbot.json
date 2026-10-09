@@ -1,0 +1,7 @@
+{
+ "id":"semaforo-chat","name":"Semáforo · Consultas estructuradas","active":false,
+ "nodes":[
+  {"id":"hook","name":"Consulta autenticada","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[0,0],"webhookId":"semaforo-chat","parameters":{"httpMethod":"POST","path":"semaforo-chat","authentication":"headerAuth","responseMode":"responseNode","options":{}},"credentials":{"httpHeaderAuth":{"id":"semaforo-webhook","name":"Semáforo webhook"}}},
+  {"id":"reply","name":"Respuesta de solo lectura","type":"n8n-nodes-base.respondToWebhook","typeVersion":1.4,"position":[280,0],"parameters":{"respondWith":"json","responseBody":"={{ { mode: 'structured', data: $json.body.data } }}","options":{"responseCode":200}}}
+ ],"connections":{"Consulta autenticada":{"main":[[{"node":"Respuesta de solo lectura","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"}
+}

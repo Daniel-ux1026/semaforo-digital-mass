@@ -1,0 +1,15 @@
+# Local SMTP capture only; it never sends email outside Docker.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27.8
+    ports: ["127.0.0.1:8025:8025"]
+  api:
+    environment:
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: tienda@example.invalid
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_SSL: "false"
+      SMTP_STARTTLS: "false"
+      SMTP_ALLOW_LOCAL_PLAINTEXT: "true"
