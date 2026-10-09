@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 cd "$DEPLOY_PATH"
 test -f infra/.env
+chmod 600 infra/.env
 test "$(git remote get-url origin)" = "https://github.com/$REPOSITORY.git"
 git diff --quiet && git diff --cached --quiet
 git fetch origin main
@@ -26,7 +28,7 @@ node scripts/harden-db.mjs
 "${compose[@]}" up -d --no-build api web chatbot
 healthy=false
 for attempt in {1..60}; do
-  if curl --fail --silent http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' && curl --fail --silent --output /dev/null http://127.0.0.1:4200/login; then healthy=true; break; fi
+  if curl --max-time 5 --fail --silent http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' && curl --max-time 5 --fail --silent --output /dev/null http://127.0.0.1:4200/login; then healthy=true; break; fi
   sleep 2
 done
 [[ "$healthy" == true ]] || { echo 'Falló la comprobación de salud; revisar servicios y migraciones.' >&2; exit 1; }
