@@ -1,6 +1,6 @@
 # GitHub: ramas, integración, entrega y despliegue
 
-Repositorio privado: Daniel-ux1026/semaforo-digital-mass. Commits en español. Usar dev para cambios de prueba, pull request a main y CI aprobado antes de integrar. main será la rama por defecto. Conservar las ramas; no subir .env ni datos de MySQL.
+Repositorio privado: Daniel-ux1026/semaforo-digital-mass. Commits en español. Usar dev para cambios de prueba, pull request a main y CI aprobado antes de integrar. main es la rama por defecto y está protegida: exige los cinco controles de CI, rechaza borrados y subidas forzadas, incluso para administradores. Conservar las ramas; no subir .env ni datos de MySQL.
 
 ## Integración continua
 
@@ -18,7 +18,7 @@ El alojamiento requiere un servidor Linux propio, Docker Compose, Git, Node 24, 
 
 Cuando el servidor exista, ir a Settings > Environments > produccion. Variables: SSH_HOST, SSH_USER, SSH_PORT, DEPLOY_PATH. Secretos: SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, REGISTRY_USER, REGISTRY_TOKEN (solo read:packages para imágenes privadas). Verificar huella del servidor con su proveedor antes de guardar known_hosts; no copiar claves a este chat. Usar usuario SSH dedicado con acceso limitado al proyecto; acceso a Docker implica privilegios elevados.
 
-DEPLOY_ENABLED es variable de repositorio. Mantener false mientras falte la configuración y cambiar a true solo al autorizar el servidor preparado. Si el plan permite aprobaciones de entorno, añadirlas. Las restricciones disponibles dependen del plan GitHub; consultar su documentación.
+DEPLOY_ENABLED es variable de repositorio. Mantener false mientras falte la configuración y cambiar a true solo al autorizar el servidor preparado. El entorno produccion acepta únicamente main. GitHub rechazó la protección por revisores obligatorios porque el plan actual no la admite en este repositorio privado. La protección de main sí está habilitada. Antes de activar producción, revisar si el plan permite añadir aprobaciones del entorno.
 
 El despliegue solo usa main aprobado, verifica host SSH, descarga imágenes por SHA, respalda/verifica restauración de MySQL, conserva volúmenes, aplica migraciones con usuario separado y comprueba salud. No usa contraseñas en argumentos ni desactiva StrictHostKeyChecking. Las credenciales temporales del runner y Docker se eliminan al terminar.
 
