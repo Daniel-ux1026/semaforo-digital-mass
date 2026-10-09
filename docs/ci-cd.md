@@ -4,11 +4,15 @@ Repositorio privado: Daniel-ux1026/semaforo-digital-mass. Commits en español. U
 
 ## Integración continua
 
-ci.yml se ejecuta con push a main/dev, pull requests y ejecución manual. Comprueba build y siete pruebas Angular con Chrome; tests Java/MySQL (Testcontainers), SpotBugs y construcción de las tres imágenes. También revisa archivos versionados por patrones de secretos. Acciones fijadas a SHA. Token de CI solo lectura; las pruebas no usan claves de OpenAI, SMTP ni acceso al servidor.
+ci.yml se ejecuta con push a main/dev, pull requests y ejecución manual. Comprueba build y las siete pruebas Angular tanto con Vitest/jsdom como en Chromium real; tests Java/MySQL (Testcontainers), SpotBugs y construcción de las tres imágenes. También revisa archivos versionados por patrones de secretos. Acciones fijadas a SHA. Token de CI solo lectura; las pruebas no usan claves de OpenAI, SMTP ni acceso al servidor.
 
-CI bloquea vulnerabilidades altas/críticas de dependencias de producción y críticas de herramientas. Se actualizaron Angular CLI/build a 20.3.39, Piscina a 5.3.2, source-map-js a 1.2.2 y http-cache-semantics a 4.3.0. La alerta OAuth del SDK MCP se resuelve mediante la versión corregida que usa el CLI. Queda una alerta alta de braces 3.0.3, sin parche publicado, propagada a seis dependencias del entorno de pruebas Karma. No forma parte de la aplicación servida por Nginx. Evitar ejecutar pruebas con patrones de archivos externos; revisar el parche o la migración del ejecutor antes de aceptar ese tipo de entrada. No se desestimó la alerta ni se aplicaron degradaciones forzadas de Karma.
+CI bloquea vulnerabilidades altas/críticas en todas las dependencias, incluidas las herramientas de desarrollo. Se actualizaron Angular CLI/build a 20.3.39, Piscina a 5.3.2, source-map-js a 1.2.2 y http-cache-semantics a 4.3.0. La alerta OAuth del SDK MCP se resuelve mediante la versión corregida que usa el CLI.
 
-Aviso pendiente: https://github.com/micromatch/braces/issues/70. Corrección de Piscina: https://github.com/piscinajs/piscina/security/advisories/GHSA-67c8-pqhq-4rmx.
+La alerta #2 de braces se resuelve eliminando Karma, Jasmine y sus adaptadores del árbol de dependencias. Las siete pruebas se migran a Vitest 5.0.3 mediante la integración Analog 2.8.0, que admite Angular 20. Se ejecutan en jsdom y Chromium, sin omitir casos ni desestimar la alerta de Dependabot. Angular y TypeScript conservan sus versiones; la compilación sigue usando el builder application original.
+
+vite.config.ts configura las pruebas y src/test-setup.ts inicializa TestBed sin Zone.js, con destrucción de los componentes después de cada caso. npm test ejecuta jsdom y npm run test:browser ejecuta Chromium. CI verifica también los tipos con tsc. El override de vitest en @angular/build ajusta un peer opcional del ejecutor antiguo, que ya no se usa; las pruebas se ejecutan con Analog. No cambia la implementación ni la versión de Angular.
+
+Fuentes: https://github.com/micromatch/braces/issues/70 y https://analogjs.org/docs/features/testing/vitest. Corrección de Piscina: https://github.com/piscinajs/piscina/security/advisories/GHSA-67c8-pqhq-4rmx.
 
 ## Entrega
 
