@@ -1,0 +1,84 @@
+name: Integración continua
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener fuentes
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci --ignore-scripts
+      - name: Comprobar secretos en fuentes
+        run: node scripts/check-tracked-secrets.mjs
+      - name: Comprobar seguridad de dependencias
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm audit --audit-level=critical
+      - name: Compilar producción
+        run: npm run build
+      - name: Probar Angular
+        run: |
+          export CHROME_BIN="$(command -v google-chrome)"
+          npm test -- --watch=false --browsers=ChromeHeadless
+      - name: Validar fuentes de Python y flujos n8n
+        run: |
+          python3 -m py_compile chatbot/app.py
+          node -e "for(const f of ['critical-events','chatbot'])JSON.parse(require('fs').readFileSync('n8n/'+f+'.json'))"
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Obtener fuentes
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Preparar Java 21
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Probar reglas, roles, solicitudes y migraciones MySQL
+        working-directory: backend
+        run: bash mvnw -B test com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check
+  containers:
+    name: Contenedores (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            context: backend
+            file: backend/Dockerfile
+          - service: web
+            context: .
+            file: infra/frontend.Dockerfile
+          - service: chatbot
+            context: chatbot
+            file: chatbot/Dockerfile
+    steps:
+      - name: Obtener fuentes
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validar construcción de imagen
+        env:
+          BUILD_CONTEXT: ${{ matrix.context }}
+          BUILD_FILE: ${{ matrix.file }}
+        run: docker build -f "$BUILD_FILE" "$BUILD_CONTEXT"

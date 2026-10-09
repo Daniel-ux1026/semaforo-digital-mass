@@ -46,6 +46,20 @@ class DatabaseTest {
   }
  }
 
+ @Test void supervisorAssignmentRejectsMissingAndInactiveAccounts() {
+  jdbc.update("INSERT INTO app_user(dni,name,password,role,must_change) VALUES('00888891','Supervisor asignado',?,'SUPERVISOR',false),('00888892','Empleado asignado',?,'WORKER',false)",passwordEncoder.encode("Test-password-123"),passwordEncoder.encode("Test-password-456"));
+  long sid=jdbc.queryForObject("SELECT id FROM app_user WHERE dni='00888891'",Long.class);
+  long wid=jdbc.queryForObject("SELECT id FROM app_user WHERE dni='00888892'",Long.class);
+  assertThrows(IllegalArgumentException.class,()->reports.assign(admin(),wid,new Admin.Assignment(Long.MAX_VALUE)));
+  assertNull(jdbc.queryForObject("SELECT supervisor_id FROM empleado WHERE usuario_id=?",Long.class,wid));
+  reports.assign(admin(),wid,new Admin.Assignment(sid));
+  assertEquals(sid,jdbc.queryForObject("SELECT supervisor_id FROM empleado WHERE usuario_id=?",Long.class,wid));
+  assertThrows(IllegalArgumentException.class,()->reports.assign(admin(),sid,new Admin.Assignment(sid)));
+  jdbc.update("UPDATE app_user SET active=false WHERE id=?",sid);
+  assertThrows(IllegalArgumentException.class,()->reports.assign(admin(),wid,new Admin.Assignment(sid)));
+  assertEquals(sid,jdbc.queryForObject("SELECT supervisor_id FROM empleado WHERE usuario_id=?",Long.class,wid));
+ }
+
  @Test void threeRolesAndProfiles() throws Exception {
   jdbc.update("INSERT INTO app_user(dni,name,password,role,must_change) VALUES('00888881','Supervisor',?,'SUPERVISOR',false)",passwordEncoder.encode("Test-password-123"));
   long sid=jdbc.queryForObject("SELECT id FROM app_user WHERE dni='00888881'",Long.class);

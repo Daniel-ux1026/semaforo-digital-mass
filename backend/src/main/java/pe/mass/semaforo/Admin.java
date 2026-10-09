@@ -26,7 +26,7 @@ class Admin {
  record Assignment(@NotNull Long supervisorId){}
  @PutMapping("/users/{id}/supervisor") @Transactional Object assign(@AuthenticationPrincipal Security.Actor a,@PathVariable long id,@Valid @RequestBody Assignment in){
   jdbc.queryForList("SELECT id FROM store_lock WHERE id=1 FOR UPDATE");
-  if(jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE id=? AND role='SUPERVISOR' AND active=true",Integer.class,in.supervisorId())!=1)throw new IllegalArgumentException("Seleccione un supervisor activo.");
+  if(!Integer.valueOf(1).equals(jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE id=? AND role='SUPERVISOR' AND active=true",Integer.class,in.supervisorId())))throw new IllegalArgumentException("Seleccione un supervisor activo.");
   if(jdbc.update("UPDATE empleado SET supervisor_id=? WHERE usuario_id=?",in.supervisorId(),id)!=1)throw new IllegalArgumentException("La cuenta debe ser empleado.");
   inventory.audit(a,"ASIGNAR_SUPERVISOR","usuario:"+id,"Supervisor:"+in.supervisorId());return Map.of("id",id);
  }
