@@ -1,44 +1,127 @@
 # Semáforo Digital Mass
 
-Sistema académico de inventario y vencimientos para una tienda. Angular, Spring Boot Java 21, MySQL, Streamlit y n8n; servicios locales mediante Docker Compose.
+Aplicación web educativa para gestionar el inventario y las fechas de vencimiento de una tienda. Permite registrar productos y lotes, priorizar su atención mediante un semáforo y llevar un historial de ventas, promociones y mermas.
 
-## Roles
+Incluye acceso para **programador, supervisor y empleado**, con permisos según su función. Fue desarrollada como proyecto académico de la Universidad Tecnológica del Perú (UTP).
 
-- **Programador (administrador):** administra cuentas, asignaciones, costos, auditoría y automatización; realiza bajas lógicas y cambia contraseñas.
-- **Supervisor:** registra operaciones, crea/edita productos y plazos, corrige movimientos y consulta reportes.
-- **Empleado:** consulta inventario y registra ingresos, ventas, promociones y mermas; no edita ni elimina.
+## Objetivos
 
-Las cuentas comparten identidad en usuarios y tienen perfiles físicos empleado, supervisor y programador. Empleados y supervisores solicitan cambio de clave desde Mi cuenta; el programador recibe solicitudes con actualización cada tres segundos. Las contraseñas se guardan como hash BCrypt. El chatbot es de consulta para los tres roles; el personal no recibe costos ni pérdidas monetarias.
+- Digitalizar el registro de productos, lotes y fechas de vencimiento.
+- Facilitar la identificación de lotes próximos a vencer mediante alertas e indicadores.
+- Ayudar a prevenir mermas con una atención oportuna y trazable del inventario.
+- Organizar las operaciones y responsabilidades del personal mediante roles.
+- Ofrecer consultas de apoyo a través de un chatbot con información autorizada.
 
-## Inicio local en Windows
+## Vista previa
 
-Requisitos: Docker Desktop con motor Linux y Node.js 24. Ejecutar INICIAR_PROYECTO.bat; el primer inicio genera infra/.env con credenciales aleatorias y aplica migraciones. Ejecutar DETENER_PROYECTO.bat para detener conservando volúmenes.
+Pantalla de acceso del proyecto:
 
-- Acceso: http://localhost:4200/login
-- Programador: http://localhost:4200/administracion
-- Empleado/supervisor: http://localhost:4200/
-- MySQL: 127.0.0.1:3307, base semaforo; las credenciales están solo en infra/.env.
+![Pantalla de acceso a Semáforo Digital Mass, con banner y formulario de inicio de sesión](docs/vista-previa.png)
 
-En una base vacía, BOOTSTRAP_DNI y BOOTSTRAP_PASSWORD crean el programador inicial. El programador cambia su clave inicial y crea al personal. No hay cuentas reales ni datos de inventario incluidos en este repositorio.
+[Abrir la aplicación local](http://localhost:4200/login), después de iniciarla con los pasos de abajo. El alojamiento público todavía está pendiente de configurar.
 
-## Configuración privada
+## Qué incluye
 
-infra/.env.example enumera las variables. Guardar OpenAI y SMTP en infra/.env, nunca en Angular o Git. GPT necesita una clave y cuota API; WhatsApp todavía requiere configurar un proveedor. La recuperación por correo es exclusiva del programador. La solicitud simulada del login conserva el comportamiento académico acordado.
+- **Banner y acceso:** presentación del proyecto e inicio de sesión con DNI y contraseña.
+- **Resumen y alertas:** lotes clasificados en verde, amarillo, rojo y vencido; búsqueda y filtros de inventario.
+- **Productos y categorías:** catálogo interno con SKU, EAN-13 opcional, unidades y plazos de aviso.
+- **Lotes y promociones:** registro de ingresos, ventas, promociones y mermas con historial de operaciones.
+- **Mi cuenta:** solicitudes de cambio de contraseña al programador y notificaciones de solicitudes pendientes.
+- **Administración:** personal, reportes, auditoría, automatización y consulta de la base de datos en español.
+- **Chatbot:** asistente de consulta con GPT y Streamlit, disponible según los permisos de cada rol.
+- **Pie de página:** identificación del proyecto académico.
 
-Las migraciones backend/src/main/resources/db/migration son la fuente de estructura de BD. base_de_datos/exportar.mjs permite generar una copia privada de consulta; no se publica el contenido.
+El alcance actual es una tienda. El buscador de tiendas y el folleto comercial no están implementados.
 
-## Validación
+El programador administra cuentas y contraseñas. El supervisor registra y edita las operaciones permitidas; el empleado consulta y registra, sin editar ni eliminar. Los accesos se comprueban también en el servidor.
 
-Frontend: npm ci --ignore-scripts; npm run build; npm test. Las siete pruebas usan Vitest y jsdom. Para ejecutarlas también en un navegador real: npx playwright install chromium y npm run test:browser.
+## Tecnologías usadas
 
-Backend: cd backend y ejecutar bash mvnw test en Linux o mvnw.cmd test en Windows. Docker debe estar disponible para MySQL de Testcontainers. Las pruebas usan bases temporales; no necesitan credenciales reales.
+| Área | Tecnologías |
+| --- | --- |
+| Interfaz | Angular 20, TypeScript, HTML, CSS, Bootstrap y PWA |
+| Servidor | Java 21, Spring Boot, Spring Security, JPA y Flyway |
+| Base de datos | MySQL 8.4, con tablas de negocio en español |
+| Asistente | Python, Streamlit y API de OpenAI |
+| Automatización y correo | n8n y Apache Commons Email |
+| Ejecución | Docker Compose y Nginx; Node.js 24 para los scripts locales |
+| Pruebas | Vitest, Analog, jsdom, Playwright, JUnit y Testcontainers |
+| Integración y entrega | GitHub Actions y GitHub Container Registry |
 
-## Ramas y automatización
+## Cómo abrirla
 
-main contiene la versión aprobada. Los cambios se trabajan en dev y se proponen mediante pull request a main, con commits en español. GitHub Actions comprueba frontend, backend y construcción Docker; publica imágenes verificadas en GHCR y prepara despliegue por SSH.
+### En Windows
 
-Consultar docs/ci-cd.md para ramas, controles y configuración de servidor. El despliegue remoto está desactivado hasta preparar servidor, HTTPS y secretos del entorno produccion. No se despliega la rama dev a producción.
+1. Instala **Docker Desktop** con el motor Linux y **Node.js 24** si todavía no los tienes.
+2. En este repositorio, selecciona **Code → Download ZIP** y extrae el archivo en una carpeta.
+3. Abre Docker Desktop y espera a que su motor esté listo.
+4. Dentro de la carpeta extraída, ejecuta **INICIAR_PROYECTO.bat**. El primer inicio descarga los servicios y prepara la base de datos; puede tardar varios minutos.
+5. Cuando termine, se abrirá el navegador. También puedes entrar en [http://localhost:4200/login](http://localhost:4200/login).
+6. Para detener los servicios y conservar los datos, ejecuta **DETENER_PROYECTO.bat**.
 
-## Alcance
+Esta aplicación utiliza un servidor y una base de datos: necesita iniciar sus servicios antes de abrirse en el navegador.
 
-Inventario manual para una tienda, sin POS/ERP. No se incluyen secretos, respaldos, exportaciones de datos, compilados, dependencias instaladas ni evidencias locales. No se afirma entrega real por WhatsApp ni cobertura de pruebas físicas de cámara.
+### Primer acceso y configuración
+
+- El primer inicio genera un archivo privado **infra/.env**. En una base vacía, **BOOTSTRAP_DNI** y **BOOTSTRAP_PASSWORD** crean la cuenta inicial del programador.
+- Consulta esas dos variables para entrar. El programador cambia su clave inicial y crea las cuentas del personal desde su panel.
+- Panel del programador: [http://localhost:4200/administracion](http://localhost:4200/administracion).
+- Panel de empleado y supervisor: [http://localhost:4200/](http://localhost:4200/), con la cuenta y los permisos correspondientes.
+- Para habilitar GPT, coloca **OPENAI_API_KEY** en **infra/.env** y vuelve a iniciar el proyecto para aplicar la configuración. La API requiere una clave válida y cuota disponible.
+- El correo requiere configurar las variables **SMTP_***. La recuperación por correo está reservada al programador; el personal solicita el cambio desde **Mi cuenta**.
+- MySQL está disponible en **127.0.0.1:3307**, base **semaforo**. Sus credenciales se consultan en **infra/.env**.
+
+El repositorio incluye **infra/.env.example** como referencia. Las contraseñas, claves, datos reales y respaldos permanecen fuera de GitHub. El enlace de solicitud del login conserva una demostración; las solicitudes del personal autenticado se guardan en la base de datos.
+
+## Estructura de archivos
+
+| Archivo o carpeta | Contenido |
+| --- | --- |
+| **README.md** | Presentación del proyecto e instrucciones de uso. |
+| **INICIAR_PROYECTO.bat / DETENER_PROYECTO.bat** | Inicio y parada de los servicios en Windows. |
+| **src/** | Interfaz Angular, estilos, rutas, pantallas y pruebas unitarias. |
+| **public/** | Iconos y manifiesto de la aplicación web progresiva. |
+| **backend/** | API Java, autenticación, reglas del inventario y pruebas del servidor. |
+| **backend/src/main/resources/db/migration/** | Migraciones que crean y actualizan la estructura de MySQL. |
+| **chatbot/** | Asistente Streamlit y sus dependencias de Python. |
+| **n8n/** | Flujos de consulta y eventos críticos, sin credenciales reales. |
+| **infra/** | Docker Compose, imágenes, Nginx y ejemplo de configuración. |
+| **base_de_datos/exportar.mjs** | Generación de una copia privada de consulta de la base de datos. |
+| **scripts/** | Preparación local, respaldos, verificaciones de seguridad y despliegue. |
+| **e2e/** | Pruebas de recorridos completos de la aplicación. |
+| **docs/** | Vista previa y documentación de solicitudes, chatbot y CI/CD. |
+| **.github/workflows/** | Automatizaciones de pruebas, publicación de imágenes y despliegue. |
+| **package.json / package-lock.json** | Comandos y dependencias de Node.js con versiones resueltas. |
+| **angular.json / tsconfig*.json** | Configuración de Angular y TypeScript. |
+| **vite.config.ts / playwright.config.ts** | Configuración de las pruebas unitarias y de navegador. |
+| **ngsw-config.json / proxy.conf.json** | Caché de recursos estáticos de la PWA y conexión local con la API. |
+| **.gitignore / .dockerignore / .gitattributes** | Exclusiones de archivos privados y generados, y formato de archivos. |
+
+Para ejecutar las pruebas: **npm test**. Para Chromium: **npx playwright install chromium** y **npm run test:browser**. Desde **backend/**, ejecuta **mvnw.cmd test** para las pruebas Java, con Docker abierto.
+
+Los cambios se preparan en **dev** y se integran en **main** mediante una revisión con CI aprobado. El despliegue remoto permanece desactivado hasta configurar un servidor Linux, HTTPS y secretos. Consulta [la guía de CI/CD](docs/ci-cd.md).
+
+## Autores
+
+Integrantes del equipo, según el documento académico del proyecto:
+
+- Cristian Elinson Olano Rodriguez.
+- Fabian Alberto Arroyo Cusman.
+- Daniel Olivos Vasquez.
+- Elton James Padilla Rodríguez.
+- Cristhoper Alexander Catalino Cueva Puican.
+- Carlos Stiven Bravo Malca.
+
+**Curso:** Curso Integrador II: Sistemas.
+
+**Universidad:** Universidad Tecnológica del Perú (UTP).
+
+**Facultad:** Ingeniería de Sistemas e Informática.
+
+**Año:** 2026.
+
+## Aviso legal
+
+Este es un **proyecto educativo** desarrollado con fines académicos. No tiene relación oficial, afiliación, patrocinio ni aprobación de **Tiendas Mass**, y sus reglas de inventario no representan políticas oficiales de la empresa.
+
+Los diseños e imágenes originales creados y aportados para este proyecto pertenecen a sus autores. Las marcas comerciales, logotipos e imágenes de terceros, incluida la denominación Tiendas Mass, mantienen los derechos de sus respectivos titulares. Su uso en este proyecto tiene una finalidad ilustrativa y educativa.
