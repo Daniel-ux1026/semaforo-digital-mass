@@ -73,6 +73,14 @@ Esta aplicación utiliza un servidor y una base de datos: necesita iniciar sus s
 
 El repositorio incluye **infra/.env.example** como referencia. Las contraseñas, claves, datos reales y respaldos permanecen fuera de GitHub. El enlace de solicitud del login conserva una demostración; las solicitudes del personal autenticado se guardan en la base de datos.
 
+### Base de datos y datos de ejemplo
+
+- [Estructura MySQL](base_de_datos/estructura_mysql.sql): las 19 tablas de negocio y la tabla técnica de Flyway, con claves, restricciones, vistas y triggers; sin registros.
+- [Inserción de datos ficticios](base_de_datos/insercion_datos_demo.sql): tres productos y lotes para probar los colores del semáforo en una instalación local preparada. La carga incluye movimientos y auditoría, y puede repetirse sin duplicar lotes.
+- [Instrucciones para MySQL Workbench y primer acceso](base_de_datos/LEEME.md).
+
+La aplicación crea su base mediante las migraciones al iniciarse. El SQL de estructura sirve para estudiar el modelo en una base independiente. Las cuentas se crean con la configuración local y desde el panel del programador.
+
 ## Estructura de archivos
 
 | Archivo o carpeta | Contenido |
@@ -86,7 +94,7 @@ El repositorio incluye **infra/.env.example** como referencia. Las contraseñas,
 | **chatbot/** | Asistente Streamlit y sus dependencias de Python. |
 | **n8n/** | Flujos de consulta y eventos críticos, sin credenciales reales. |
 | **infra/** | Docker Compose, imágenes, Nginx y ejemplo de configuración. |
-| **base_de_datos/exportar.mjs** | Generación de una copia privada de consulta de la base de datos. |
+| **base_de_datos/** | Estructura SQL, inserción de datos ficticios, instrucciones y exportadores de consulta privada. |
 | **scripts/** | Preparación local, respaldos, verificaciones de seguridad y despliegue. |
 | **e2e/** | Pruebas de recorridos completos de la aplicación. |
 | **docs/** | Vista previa y documentación de solicitudes, chatbot y CI/CD. |

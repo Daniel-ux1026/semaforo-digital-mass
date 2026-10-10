@@ -57,7 +57,6 @@ base_de_datos/datos/
 docs/evidence/
 docs/*.json
 base_de_datos/inventario_exportacion.json
-base_de_datos/estructura_mysql.sql
 *.zip
 *.sql.gz
 *.pem
