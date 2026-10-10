@@ -1,6 +1,6 @@
 import {request} from '@playwright/test';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
-import {execFileSync} from 'node:child_process';
+import {exportarEstructura} from './exportar-estructura.mjs';
 const folder=new URL('./datos/',import.meta.url);mkdirSync(folder,{recursive:true});
 const user=JSON.parse(readFileSync(new URL('../.local/demo-user.json',import.meta.url),'utf8'));
 const ctx=await request.newContext({baseURL:'http://localhost:4200'});
@@ -25,8 +25,7 @@ try{
  }
  writeFileSync(new URL('semaforo_consulta.sql',folder),sql);
  writeFileSync(new URL('datos.json',folder),JSON.stringify({generado:stamp,tablas:all},null,2));
- const schema=execFileSync('docker',['exec','semaforo-mysql-1','sh','-c','MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysqldump -uroot --no-data --skip-add-drop-table --no-tablespaces semaforo '+tables.join(' ')],{maxBuffer:20*1024*1024});
- writeFileSync(new URL('../estructura_mysql.sql',folder),schema);
+ exportarEstructura();
  const count=Object.fromEntries(Object.entries(all).map(([k,v])=>[k,v.length]));
  writeFileSync(new URL('../inventario_exportacion.json',folder),JSON.stringify({fecha:stamp,tablas:count},null,2));
  console.log('Exportadas '+tables.length+' tablas españolas a base_de_datos/datos; estructura real guardada sin datos privados.');
