@@ -26,7 +26,7 @@ Capturas de la interfaz vigente, tomadas con una base de demostración independi
 
 Acceso con DNI y contraseña, identidad visual amarilla y azul, y diseño adaptable a la pantalla.
 
-![Inicio de sesión con el logo de Mass y el formulario de acceso](docs/vista-previa.png)
+![Inicio de sesión con el logo de Mass y el formulario de acceso](docs/capturas/inicio-sesion-mass.png)
 
 ### Resumen del inventario
 
