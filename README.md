@@ -4,13 +4,22 @@
 
 Aplicación web que permite registrar productos y lotes, identificar qué mercadería requiere atención y conservar el historial de ingresos, ventas, promociones y mermas. El semáforo organiza la revisión por fecha de vencimiento y los permisos distribuyen el trabajo entre empleado, supervisor y programador.
 
-Proyecto académico del curso Integrador II de la Universidad Tecnológica del Perú. La versión actual se ejecuta en local mediante Docker Compose.
+Proyecto académico del curso Integrador II de la Universidad Tecnológica del Perú. Puede ejecutarse en local mediante Docker Compose y cuenta con una versión de demostración desplegada en Railway.
+
+## Entrega final del 7 de noviembre de 2026
+
+- [Abrir la aplicación publicada](https://semaforo-digital-mass-production.up.railway.app/login).
+- [Documentos Word de los puntos 22 y 23 y resumen de una hoja](entregables/README.md).
+- [Despliegue y validación final](docs/despliegue-railway.md), [resultados originales](docs/deployment-validation) y [capturas](docs/evidence).
+- [Mediciones de rendimiento locales con k6](docs/performance-2026-11-07).
+
+El código funcional desplegado está identificado por la etiqueta **v1.1.0**. Esta rama incorpora además la documentación y las evidencias posteriores, incluida la prueba aprobada del asistente GPT en Railway. No se publican claves, contraseñas ni respaldos privados de MySQL.
 
 [Funciones](#qué-incluye) · [Capturas](#vista-previa) · [Instalación](#cómo-abrirla) · [Arquitectura](#arquitectura) · [Base de datos](#base-de-datos) · [Pruebas](#pruebas) · [CI/CD](#estado-de-cicd)
 
 ## Avisos de vencimiento en pantalla
 
-El servidor también incorpora [alertas por correo y su historial](docs/alertas-correo.md). El envío a Gmail se verificó con un lote de demostración; la activación automática se configura por separado mediante variables privadas.
+El servidor también incorpora [alertas por correo y su historial](docs/alertas-correo.md). En Railway, el envío automático está activado y utiliza Resend por HTTPS; se verificaron un correo recibido y un aviso automático nuevo. La configuración utiliza variables privadas.
 
 La aplicación muestra un aviso con producto, lote, fecha y saldo cuando detecta lotes críticos o vencidos con stock. Revisa todas las páginas de alertas al actualizar o cambiar de apartado y cada 45 segundos mientras la pestaña está visible y conectada.
 
@@ -253,7 +262,7 @@ Las rutas de inventario requieren una sesión válida. Los cambios de estado uti
 
 Las pruebas de extremo a extremo requieren la aplicación disponible y credenciales privadas del entorno de pruebas. Usan Edge en Windows por defecto. **E2E_URL** permite seleccionar la dirección de una instancia separada.
 
-Estas pruebas crean productos, lotes y usuarios ficticios, por lo que deben ejecutarse sobre una base de pruebas. La última verificación de la interfaz registró **7 pruebas unitarias y 4 recorridos integrales aprobados**, con ejemplos de lácteos, abarrotes, refrigerados, congelados, snacks, licores y aseo.
+Estas pruebas crean productos, lotes y usuarios ficticios, por lo que deben ejecutarse sobre una base de pruebas. Antes del despliegue se aprobaron **36 pruebas Java/MySQL y 11 del frontend**. En Railway se aprobaron seis casos principales de Playwright, una comprobación adicional del correo y una consulta real a GPT. Los resultados y límites de cobertura están en [la validación final](docs/despliegue-railway.md). La prueba GPT es optativa porque genera consumo de API.
 
 ## Estado de CI/CD
 
@@ -288,10 +297,10 @@ La ejecución local utiliza Docker Compose. La puesta en producción requiere co
 ## Alcance y limitaciones actuales
 
 - El sistema administra una tienda.
-- La versión documentada se verifica en local. El despliegue público requiere configuración y validación.
+- La versión de demostración se validó en Railway; las mediciones de carga del punto 22 fueron locales y no establecen una capacidad máxima de Railway.
 - La PWA conserva recursos estáticos. Las operaciones y consultas de inventario requieren conexión con la API.
 - La cámara del escáner requiere permiso del navegador y un contexto seguro, como localhost o HTTPS.
-- OpenAI, SMTP y los flujos de n8n requieren configuración propia.
+- OpenAI y el correo requieren configuración privada. Railway utiliza Resend; SMTP queda disponible para entornos que lo permitan. n8n no se desplegó y no es necesario para el correo automático.
 - Las alertas de vencimiento se consultan al abrir el panel y se actualizan periódicamente cada 45 segundos mientras la página está visible. Las solicitudes de contraseña del programador se consultan cada 3 segundos.
 
 ## Autores
