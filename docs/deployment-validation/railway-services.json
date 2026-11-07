@@ -1,5 +1,5 @@
 {
-  "checked": "2026-11-07T22:03:52.127Z",
+  "checked": "2026-11-07T22:27:11.947Z",
   "tag": "v1.1.0",
   "commit": "5cb4fbf2e841debd39938bd7d5a5234041f0615e",
   "services": [
@@ -91,11 +91,11 @@
       },
       "status": "SUCCESS",
       "deploymentStopped": false,
-      "deploymentId": "436d638b-aad7-4482-b36f-8bb896c45fd7",
+      "deploymentId": "3258c820-73a6-4447-87e2-d3d16447e71a",
       "latestDeployment": {
-        "id": "436d638b-aad7-4482-b36f-8bb896c45fd7",
+        "id": "3258c820-73a6-4447-87e2-d3d16447e71a",
         "status": "SUCCESS",
-        "createdAt": "2026-11-07T21:59:48.039Z",
+        "createdAt": "2026-11-07T22:25:08.956Z",
         "deploymentStopped": false
       },
       "url": "https://semaforo-chatbot-production.up.railway.app",

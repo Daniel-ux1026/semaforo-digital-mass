@@ -107,10 +107,11 @@ Fuentes verificables: docs/deployment-validation/railway-persistence.json y rail
 | alerts-email-results.json | 2 casos de alertas y correo |
 | security-results.json | 1 caso de tokens y límite de acceso |
 | final-email-status-results.json | 1 comprobación adicional del correo activado |
+| gpt-cloud-results.json | 1 consulta real al asistente GPT |
 
-Los seis casos principales comprobaron funciones anteriores junto con las nuevas alertas. Se aprobaron además la revisión del correo ya activado. La clave de GPT quedó configurada, pero la consulta externa no se considera validada en este informe.
+Los seis casos principales comprobaron funciones anteriores junto con las nuevas alertas. Se aprobaron además la revisión del correo ya activado y una consulta real a GPT desde la aplicación pública.
 
-La prueba de GPT no aprobó: OpenAI devolvió HTTP 401 con código expired_secret_key. La conexión WebSocket del chatbot se corrigió y un origen ajeno siguió siendo rechazado con 403; para validar las respuestas del modelo se requiere reemplazar la clave vencida y repetir el caso. El intento fallido no modificó el inventario.
+El asistente GPT respondió utilizando el inventario mediante la API de OpenAI. Su acceso exige sesión de la tienda y es de solo lectura. Esta prueba no valida todas las respuestas posibles del modelo ni una carga concurrente de consultas.
 
 Antes del despliegue se aprobaron 36 pruebas Java/MySQL y 11 del frontend, junto con la comprobación TypeScript local. GitHub Actions está pausado: no se presenta una ejecución de integración continua como aprobada. Las mediciones de carga del punto 22 fueron locales; no se ha medido una capacidad máxima de Railway.
 
@@ -124,7 +125,6 @@ La protección del último administrador se comprobó en las pruebas Java/MySQL 
 | Remitente Resend de demostración | Solo destinatario autorizado de la cuenta; otros correos requieren dominio verificado. |
 | Avisos de dependencias | El push informó 31 alertas Dependabot de la rama predeterminada: 11 altas, 16 moderadas y 4 bajas. Evaluar aplicabilidad y corregir. |
 | Restauración con motor distinto | Ensayar en un entorno aislado con la misma versión MySQL de Railway. |
-| Clave GPT vencida | OpenAI: HTTP 401 / expired_secret_key. Reemplazar la clave privada y repetir la prueba. |
 
 ## Procedimiento para regresar a una versión estable
 
@@ -163,3 +163,9 @@ Figura 6. Captura de los controles de consumo configurados en Railway. Estos con
 Repositorio: https://github.com/Daniel-ux1026/semaforo-digital-mass. Etiqueta: v1.1.0. Documento técnico actualizado: docs/despliegue-railway.md. Resultados originales: docs/deployment-validation. Las capturas de este Word proceden de las pruebas reales y de Railway; no son maquetas.
 
 Referencias oficiales: docs.railway.com/deployments/monorepo; docs.railway.com/deployments/deployment-actions; docs.railway.com/networking/outbound-networking; resend.com/docs/api-reference/emails/send-email; developers.openai.com/api/docs/quickstart.
+
+## Evidencia de la consulta al asistente
+
+Se accedió al asistente desde la sesión de demostración de la web pública. La consulta pidió hasta dos códigos de lote y su fecha de vencimiento. La respuesta se generó mediante OpenAI; el asistente no modificó el inventario.
+
+Figura 7. Captura recortada de la respuesta real del asistente GPT en Railway. Fuentes: gpt-cloud-results.json y railway-chat-origin.json. Prueba optativa habilitada expresamente porque comparte el resumen del inventario con OpenAI y genera consumo de API.

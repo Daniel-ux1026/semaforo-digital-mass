@@ -1,6 +1,10 @@
 {
-  "checked": "2026-11-07T22:02:35.932Z",
+  "checked": "2026-11-07T22:24:56.179Z",
   "model": "gpt-4.1-mini",
-  "modelHttp": 401,
-  "modelError": "expired_secret_key"
+  "modelHttp": 200,
+  "modelError": null,
+  "responseHttp": 200,
+  "errorCode": null,
+  "errorType": null,
+  "returnedText": "OK"
 }

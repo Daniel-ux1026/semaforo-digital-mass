@@ -67,7 +67,7 @@
       "specs": [
         {
           "title": "GPT consulta el inventario desde la aplicación pública",
-          "ok": false,
+          "ok": true,
           "tags": [],
           "tests": [
             {
@@ -80,53 +80,18 @@
                 {
                   "workerIndex": 0,
                   "parallelIndex": 0,
-                  "status": "failed",
-                  "duration": 49495,
-                  "error": {
-                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m0\u001b[39m\nTimeout:  45000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 45000ms\u001b[22m\n\u001b[2m  - waiting for locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\u001b[22m\n\u001b[2m    48 × locator resolved to 0 elements\u001b[22m\n\u001b[2m       - unexpected value \"0\"\u001b[22m\n",
-                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m0\u001b[39m\nTimeout:  45000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 45000ms\u001b[22m\n\u001b[2m  - waiting for locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\u001b[22m\n\u001b[2m    48 × locator resolved to 0 elements\u001b[22m\n\u001b[2m       - unexpected value \"0\"\u001b[22m\n\n    at C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\e2e\\gpt-cloud.spec.ts:22:25",
-                    "location": {
-                      "file": "C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\e2e\\gpt-cloud.spec.ts",
-                      "column": 25,
-                      "line": 22
-                    },
-                    "snippet": "  20 |  await prompt.press('Enter');\n  21 |  const messages=frame.getByTestId('stChatMessage');\n> 22 |  await expect(messages).toHaveCount(2,{timeout:45000});\n     |                         ^\n  23 |  await expect(messages.last()).toContainText(/DEMO|lote|venc/i);\n  24 |  await expect(frame.getByText('No se pudo consultar GPT.',{exact:false})).toHaveCount(0);\n  25 |  await page.getByRole('region',{name:'Asistente de consulta'}).screenshot({path:'docs/evidence/railway-gpt-answer.png'});"
-                  },
-                  "errors": [
-                    {
-                      "location": {
-                        "file": "C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\e2e\\gpt-cloud.spec.ts",
-                        "column": 25,
-                        "line": 22
-                      },
-                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\nExpected: \u001b[32m2\u001b[39m\nReceived: \u001b[31m0\u001b[39m\nTimeout:  45000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveCount\" with timeout 45000ms\u001b[22m\n\u001b[2m  - waiting for locator('iframe[title=\"Asistente GPT de la tienda\"]').contentFrame().getByTestId('stChatMessage')\u001b[22m\n\u001b[2m    48 × locator resolved to 0 elements\u001b[22m\n\u001b[2m       - unexpected value \"0\"\u001b[22m\n\n\n  20 |  await prompt.press('Enter');\n  21 |  const messages=frame.getByTestId('stChatMessage');\n> 22 |  await expect(messages).toHaveCount(2,{timeout:45000});\n     |                         ^\n  23 |  await expect(messages.last()).toContainText(/DEMO|lote|venc/i);\n  24 |  await expect(frame.getByText('No se pudo consultar GPT.',{exact:false})).toHaveCount(0);\n  25 |  await page.getByRole('region',{name:'Asistente de consulta'}).screenshot({path:'docs/evidence/railway-gpt-answer.png'});\n    at C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\e2e\\gpt-cloud.spec.ts:22:25"
-                    }
-                  ],
+                  "status": "passed",
+                  "duration": 9341,
+                  "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-07T22:01:05.390Z",
+                  "startTime": "2026-11-07T22:26:21.005Z",
                   "annotations": [],
-                  "attachments": [
-                    {
-                      "name": "screenshot",
-                      "contentType": "image/png",
-                      "path": "C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\test-results\\gpt-cloud-GPT-consulta-el--50479-desde-la-aplicación-pública\\test-failed-1.png"
-                    },
-                    {
-                      "name": "error-context",
-                      "contentType": "text/markdown",
-                      "path": "C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\test-results\\gpt-cloud-GPT-consulta-el--50479-desde-la-aplicación-pública\\error-context.md"
-                    }
-                  ],
-                  "errorLocation": {
-                    "file": "C:\\Users\\bravo\\OneDrive\\Escritorio\\Documentos\\ChatGPT\\Integrador\\semaforo-digital-mass-revision-2026-11-07\\e2e\\gpt-cloud.spec.ts",
-                    "column": 25,
-                    "line": 22
-                  }
+                  "attachments": []
                 }
               ],
-              "status": "unexpected"
+              "status": "expected"
             }
           ],
           "id": "7e4682c1f7154bf9e09f-2d654622d559e17daddb",
@@ -139,11 +104,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-07T22:01:04.472Z",
-    "duration": 50935.960999999996,
-    "expected": 0,
+    "startTime": "2026-11-07T22:26:19.798Z",
+    "duration": 11094.938,
+    "expected": 1,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }
