@@ -32,7 +32,7 @@ import {Icon} from './icon';
     }
     <form class="access-form" [formGroup]="form" (ngSubmit)="login()">
      <label for="dni">DNI</label>
-     <input id="dni" formControlName="dni" inputmode="numeric" maxlength="8" autocomplete="username" placeholder="8 dígitos">
+     <input id="dni" formControlName="dni" inputmode="numeric" pattern="[0-9]{8}" autocomplete="username" placeholder="8 dígitos" (input)="normalizeDni($event)">
      <label for="password">Contraseña</label>
      <div class="password-field">
       <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" maxlength="72" placeholder="Tu contraseña">
@@ -58,6 +58,17 @@ export class Login {
   dni:['',[Validators.required,Validators.pattern(/^[0-9]{8}$/)]],
   password:['',[Validators.required,Validators.maxLength(72)]],
  });
+ normalizeDni(event:Event){
+  const input=event.target as HTMLInputElement;
+  const original=input.value;
+  const digits=original.replace(/[^0-9]/g,'').slice(0,8);
+  if(original===digits)return;
+  const cursor=original.slice(0,input.selectionStart??original.length).replace(/[^0-9]/g,'').length;
+  input.value=digits;
+  this.form.controls.dni.setValue(digits);
+  const position=Math.min(cursor,digits.length);
+  input.setSelectionRange(position,position);
+ }
  async login(){
   if(this.form.invalid||this.busy()||!this.api.online())return;
   this.busy.set(true);

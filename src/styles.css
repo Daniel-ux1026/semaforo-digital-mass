@@ -122,6 +122,7 @@ small { font-size: .78rem; }
 .access-form .primary:hover:not(:disabled) { background: #10278b; }
 .password-field { position: relative; }
 .password-field input { padding-right: 52px; }
+.password-field input::-ms-reveal { display: none; }
 .password-toggle { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); background: transparent; border: 0; color: var(--muted); }
 
 /* Navegación */
