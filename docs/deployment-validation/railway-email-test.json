@@ -1,0 +1,12 @@
+{
+  "completed": "2026-11-07T21:34:53.135Z",
+  "base": "https://semaforo-digital-mass-production.up.railway.app",
+  "productId": 2,
+  "lotId": 1,
+  "code": "DEMO-RAILWAY-CORREO-1794087292055",
+  "http": 200,
+  "id": 1,
+  "estado": "ACCEPTED",
+  "intentos": 1,
+  "ultimo_error": null
+}

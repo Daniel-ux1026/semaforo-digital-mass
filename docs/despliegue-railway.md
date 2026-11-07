@@ -1,60 +1,162 @@
-# Despliegue y validación en Railway
+Se desplegó Semáforo Digital Mass en Railway Hobby y se validó su funcionamiento en una dirección pública el 7 de noviembre de 2026. Se comprobó el flujo principal, el control de acceso, el manejo de errores, el correo y la conservación de datos después de reiniciar los servicios. Las pruebas utilizaron registros de demostración identificados con DEMO.
 
-Estado al 7 de noviembre de 2026: preparación y validación local. El proyecto existente hopeful-stillness está en production con la prueba de Railway vencida y sus tres servicios apagados. No se ha publicado todavía la versión actual ni se han repetido las pruebas en una dirección pública.
+## Plataforma y versión publicada
 
-## Plataforma y servicios
+| Elemento | Configuración comprobada |
+| --- | --- |
+| Plataforma | Railway Hobby; proyecto hopeful-stillness; ambiente production; región iad. |
+| Acceso | https://semaforo-digital-mass-production.up.railway.app/login |
+| Versión funcional | Etiqueta v1.1.0; commit 5cb4fbf2e841debd39938bd7d5a5234041f0615e. Rama codex/preparar-version-final. |
+| Servicios | Angular y Nginx; API Spring Boot / Java 21; MySQL 9.7.4; chatbot Streamlit. |
+| Responsable | Stiven Bravo Malca, responsable de la demostración y del despliegue. |
 
-El responsable eligió Railway Hobby y correo por API HTTPS, porque Hobby no permite SMTP saliente. La aplicación mantiene SMTP para el entorno local y agrega Resend como proveedor configurable por HTTPS.
+La etiqueta identifica el código ejecutable. Los resultados y la documentación se incorporan después en un commit documental. Los servicios de aplicación se desplegaron por SHA explícito; la etiqueta evita depender de cambios futuros de una rama.
 
-Servicios previstos:
+Figura 1. Captura real de Railway con los cuatro servicios en línea y el volumen MySQL asociado. Inventario de despliegues: docs/deployment-validation/railway-services.json.
 
-| Servicio | Origen | Configuración |
-|---|---|---|
-| Web Angular y Nginx | Raíz del repositorio, Dockerfile | PORT, API_HOST y CHATBOT_HOST |
-| API Java | /backend, Dockerfile | Base MySQL, JWT, origen HTTPS, cookies seguras y proveedor de correo |
-| MySQL persistente | Servicio existente | Respaldar antes de migrar; conservar su volumen |
-| Chatbot | /chatbot, Dockerfile | BACKEND_URL con la URL HTTPS de la API |
+## Procedimiento de despliegue aplicado
 
-Los dominios de API_HOST y CHATBOT_HOST no incluyen protocolo ni rutas. Nginx los usa mediante HTTPS, valida los certificados y conserva las rutas /api/ y /chat/. La versión anterior tenía una dirección de backend fija y no incluía el proxy del chatbot.
+1. Se identificó el código por commit, se publicó en GitHub y se conservó la base anterior. Se activó Hobby con autorización del titular y se configuraron los límites de consumo.
 
-La red privada puede usarse para MySQL. La propuesta web preparada usa orígenes HTTPS de la API y del chatbot; estos conservan su autenticación. No exponer MySQL por una dirección pública salvo acceso temporal de mantenimiento.
+2. Antes de migrar, se obtuvo un respaldo privado de la base de Railway. Se restauró en una base local temporal y se compararon las 20 tablas físicas. Se conservó el volumen existente de Railway; no se cargó sobre él la base local.
 
-## Configuración del correo
+3. Se separaron las cuentas semaforo_migrator y semaforo_app. Flyway aplicó V7 para los disparadores de perfiles y V8 para el historial de correo. El usuario de ejecución no tiene DELETE ni UPDATE sobre movimientos o auditoría.
 
-MAIL_PROVIDER=resend, RESEND_API_KEY privada, RESEND_FROM y ALERT_EMAIL_TO. Mantener ALERT_EMAIL_ENABLED=false hasta comprobar un único aviso y registrar la línea inicial. Con onboarding@resend.dev, Resend limita el remitente de prueba al correo asociado a la cuenta; para otros destinatarios se requiere un dominio verificado.
+4. Se configuraron las raíces de los Dockerfile, puertos, comprobaciones de salud y variables privadas. Las contraseñas de MySQL, JWT_SECRET, RESEND_API_KEY y OPENAI_API_KEY permanecen fuera del repositorio.
 
-El código registra la aceptación del proveedor; no equivale a confirmar la bandeja de entrada. Rechazos explícitos quedan fallidos y los resultados inciertos no se reenvían automáticamente.
+5. Se desplegaron API y chatbot, y después la web con sus dominios configurados. Se corrigieron la profundidad de validación TLS del proxy y el puerto de Streamlit. Las rutas públicas quedaron operativas.
 
-## Procedimiento previsto
+6. Se creó una cuenta ADMIN ficticia autorizada para la demostración, conservando las cuentas anteriores. Se ejecutaron las pruebas de interfaz y API, el correo real, la persistencia y la regresión. La clave SSH temporal se revocó al terminar el mantenimiento.
 
-1. Identificar con commit y etiqueta el código validado. Los cambios actuales están en la rama local codex/preparar-version-final, sobre la base 9461354a8767f7bf2ab317e485a8d77f8ce21eca. Esta base no identifica por sí sola las modificaciones locales.
-2. Antes de activar la base anterior, verificar el volumen y obtener un respaldo. Probar una restauración independiente. No reemplazar los datos antiguos con la base local de demostración sin una decisión expresa.
-3. Activar el plan elegido desde la cuenta del responsable. El pago lo realiza el titular.
-4. Configurar las raíces de servicio, variables y secretos desde Railway. Configurar la API para escuchar en la dirección y puerto suministrados por la plataforma, APP_ORIGIN con el dominio HTTPS de la web y SECURE_COOKIE=true.
-5. Iniciar MySQL y aplicar Flyway con un usuario que tenga permisos de migración. V7 recrea disparadores de perfiles y V8 añade avisos_correo. Separar las credenciales de aplicación y migración una vez validado el esquema.
-6. Desplegar API y chatbot, comprobar salud y generar sus dominios. Configurar esos dominios en la web y desplegarla.
-7. Comprobar acceso, alta de producto y lote, atención de stock, reportes, chatbot, alertas y correo. Usar registros claramente ficticios y conservar sus identificadores.
-8. Verificar permisos de empleado y supervisor, respuestas de error, persistencia después de reiniciar y ausencia de errores de JavaScript.
-9. Registrar URL pública, identificador del despliegue, commit/etiqueta, fecha, capturas y resultados. Repetir las mediciones relevantes del punto 22 en esta plataforma.
+| Servicio | Raíz y puerto | Configuración relevante |
+| --- | --- | --- |
+| Web | / · 8080 | API_HOST y CHATBOT_HOST sin protocolo ni ruta; proxy HTTPS con verificación TLS y profundidad 3. |
+| API | /backend · 8080 | APP_ORIGIN público; SECURE_COOKIE=true; SERVER_ADDRESS=0.0.0.0; JVM 128–384 MiB. |
+| MySQL | Volumen · 3306 | /var/lib/mysql; DNS privado mysql.railway.internal; base railway; buffer InnoDB 128 MiB. |
+| Chatbot | /chatbot · 8501 | BACKEND_URL por HTTPS; OPENAI_MODEL=gpt-4.1-mini; salud /chat/_stcore/health. |
 
-## Reversión prevista
+MySQL utiliza una imagen fijada por digest, registrada en railway-services.json. No se añadió un acceso público a la base. El despliegue requiere la configuración privada además del código.
 
-Detener primero el envío automático si el defecto afecta al correo. En Railway puede restaurarse un despliegue previo exitoso desde su historial cuando el plan aún lo conserva; verificar también las variables restauradas.
+## Pruebas del flujo principal
 
-Volver a una imagen anterior no restaura la base de datos. La tabla de V8 es adicional y puede conservarse al volver a un código que no la usa. Si el defecto requiere recuperar datos o esquema, poner el sistema en mantenimiento y restaurar el respaldo validado en una base independiente antes de cambiar la conexión. No sobrescribir directamente la base activa.
+El recorrido automatizado inició sesión desde la web pública, registró productos y lotes ficticios, consultó el inventario, atendió stock y promociones, descargó reportes CSV y verificó la presentación móvil. No se observaron errores de JavaScript en ese recorrido.
 
-La versión estable de retorno y la retención real del historial deben identificarse al publicar. No se ha ejecutado una reversión en Railway en esta sesión.
+| Comprobación | Resultado |
+| --- | --- |
+| Acceso y catálogo | Sesión válida; registro y consulta de productos y lotes. |
+| Atención y reportes | Operaciones de stock y promociones; descarga de CSV. |
+| Interfaz móvil y asistente local | Contenido accesible; consultas estructuradas operativas. |
 
-## Validaciones locales y pendientes
+Figura 2. Captura final del inventario de demostración en la dirección pública, después de registrar el lote automático. El recorrido de Playwright consta en flow-results.json: 1 caso aprobado en 31,2 segundos. Las operaciones se ejecutaron contra la API y su almacenamiento en Railway.
 
-El respaldo local y su restauración temporal se comprobaron, incluyendo todas las tablas físicas detectadas y avisos_correo. Los detalles quedan en docs/backup-verification.json y el respaldo privado en .local/backups.
+## Permisos y manejo de errores
 
-La persistencia local tras reiniciar MySQL y la API quedó verificada por conteos y SHA256 de filas ordenadas: 94 productos, 95 lotes, 100 movimientos y 31 registros de correo idénticos antes y después. La API volvió a estado UP. Evidencia: docs/deployment-validation/persistence.json. Esto no sustituye la comprobación de persistencia en Railway.
+| Caso probado | Respuesta observada |
+| --- | --- |
+| Consultar lotes o usuarios sin sesión | HTTP 401; no se permite acceder a información protegida. |
+| Empleado intenta administración | HTTP 403 en usuarios, visor de base y consulta administrativa; no se exponen costos. |
+| Contraseña restablecida o usuario desactivado | Las sesiones anteriores pierden acceso. |
+| DNI inválido y token vencido o alterado | HTTP 400 para formato inválido; HTTP 401 para tokens no válidos. |
+| Exceso de intentos de inicio de sesión | HTTP 429; el control limita nuevos intentos. |
+| Escáner, cámara y desconexión | Se prueban código inválido/desconocido/conocido, cámara denegada y operaciones deshabilitadas sin conexión. |
 
-Pasaron 36 pruebas Java/MySQL, incluidas SMTP local, aceptación HTTPS simulada, rechazo de credenciales y tratamiento de una respuesta incierta. Además, Resend aceptó por HTTPS el aviso real del lote DEMO-RESEND-1794073952789 en un intento, sin errores, y el usuario confirmó su recepción. Esta prueba se originó en el entorno local; debe repetirse desde Railway.
+Figura 3. Vista real del empleado en Railway. Evidencias: permissions-errors-results.json y security-results.json. La cuenta ficticia de empleado se desactivó al terminar la prueba.
 
-La imagen web preparada se construyó y pasó nginx -t con dominios de prueba. Sin dominios, el arranque se rechaza expresamente. Estas verificaciones no prueban todavía conectividad entre servicios en Railway.
+## Alertas y correo en Railway
 
-Defectos y condiciones pendientes: límite compartido de 240 solicitudes por minuto observado en la prueba de pico; GitHub Actions pausado; cuenta Railway sin plan activo; URL pública, versión publicada y pruebas de producción todavía pendientes. Resend utiliza el remitente de demostración y solo puede enviar al destinatario permitido de la cuenta hasta verificar un dominio propio.
+El aviso visual muestra el lote que requiere atención. Se comprobó su presentación móvil, activación del sonido y cierre sin duplicar el aviso. El correo se envía desde una tarea programada de la API, sin n8n y sin depender de que el navegador permanezca abierto.
 
-Referencias oficiales: https://docs.railway.com/networking/outbound-networking, https://docs.railway.com/deployments/monorepo, https://docs.railway.com/deployments/deployment-actions y https://resend.com/docs/api-reference/emails/send-email.
+Primero se envió el lote DEMO-RAILWAY-CORREO-1794087292055 desde Railway y el destinatario confirmó su recepción. Luego se reconocieron cuatro avisos anteriores como BASELINE, sin enviarlos, y se activó el envío automático para avisos nuevos.
+
+La prueba automática creó el lote DEMO-RAILWAY-AUTO-1794087974641, id 14. Sin invocar el endpoint de prueba, Resend lo aceptó en un intento a las 16:46:55 de Lima. ACCEPTED acredita la aceptación del proveedor; la recepción en bandeja se confirmó para el primer correo de prueba.
+
+Figuras 4 y 5. Capturas reales del aviso móvil y del estado de correo. Fuentes: alerts-email-results.json, railway-email-test.json, railway-email-activation.json, railway-automatic-email.json y final-email-status-results.json.
+
+## Persistencia de datos y comprobación del respaldo
+
+Se reiniciaron realmente MySQL y la API entre las 16:41:00 y 16:41:31 de Lima. La API volvió a estado UP y la sesión continuó operativa. Antes y después se consultaron todas las páginas de productos, lotes y movimientos del visor administrativo, además del historial de correo, y se compararon conteos y hashes SHA256.
+
+| Conjunto observado | Antes | Después | SHA256 coincide |
+| --- | --- | --- | --- |
+| productos | 15 | 15 | Sí |
+| lotes | 13 | 13 | Sí |
+| movimientos | 14 | 14 | Sí |
+| avisos_correo (campos del historial) | 1 | 1 | Sí |
+
+| Conjunto | Inicio del SHA256 antes y después |
+| --- | --- |
+| productos | 16d5d5cabf66b1a0c7313595… |
+| lotes | 1be7c6c667719d3d896c7b1b… |
+| movimientos | 1511e5a733c5a58d6aa8dc43… |
+| avisos_correo (campos del historial) | f4c9fdcc7be4d9e655fb73c2… |
+
+Resultado: los registros comparados se conservaron. El hash cubre los campos expuestos por el visor, no todas las columnas internas ni todas las tablas. El historial admite hasta 50 filas y contenía una al medir. Los conteos son anteriores al reconocimiento BASELINE y a la creación del lote automático; no representan el total actual.
+
+El respaldo previo a migraciones se restauró en una base aislada y sus 20 tablas físicas conservaron los conteos. La fuente era MySQL 9.7.4 de Railway; la restauración se ensayó en MySQL local 8.4.8, ajustando únicamente los calificadores de esquema de las vistas. Se comprobó que las vistas no apuntaran a otra base y se eliminó la base temporal al terminar.
+
+Esta comprobación no equivale a un ensayo de recuperación completo en Railway ni garantiza compatibilidad ante cualquier cambio de versión. El SQL, las contraseñas y las claves se guardan en archivos privados y no se adjuntan al informe.
+
+Fuentes verificables: docs/deployment-validation/railway-persistence.json y railway-backup-check.json. Los hashes completos y conteos originales permanecen en esos archivos del repositorio.
+
+## Regresión y alcance de la validación
+
+| Archivo en docs/deployment-validation | Casos aprobados |
+| --- | --- |
+| flow-results.json | 1 recorrido principal |
+| permissions-errors-results.json | 2 casos de permisos y errores |
+| alerts-email-results.json | 2 casos de alertas y correo |
+| security-results.json | 1 caso de tokens y límite de acceso |
+| final-email-status-results.json | 1 comprobación adicional del correo activado |
+
+Los seis casos principales comprobaron funciones anteriores junto con las nuevas alertas. Se aprobaron además la revisión del correo ya activado. La clave de GPT quedó configurada, pero la consulta externa no se considera validada en este informe.
+
+Antes del despliegue se aprobaron 36 pruebas Java/MySQL y 11 del frontend, junto con la comprobación TypeScript local. GitHub Actions está pausado: no se presenta una ejecución de integración continua como aprobada. Las mediciones de carga del punto 22 fueron locales; no se ha medido una capacidad máxima de Railway.
+
+La protección del último administrador se comprobó en las pruebas Java/MySQL aisladas. En la base compartida se omitió expresamente esa modificación para conservar las cuentas anteriores. El rol SUPERVISOR está definido en el código, pero no tuvo un recorrido público independiente durante esta validación.
+
+## Defectos conocidos y condiciones pendientes
+
+| Condición | Tratamiento o limitación |
+| --- | --- |
+| HTTP 429 en el pico local | Se mantiene el límite de entrada; revisar antes de ajustar. Falta repetir la carga en Railway. |
+| Remitente Resend de demostración | Solo destinatario autorizado de la cuenta; otros correos requieren dominio verificado. |
+| Avisos de dependencias | El push informó 31 alertas Dependabot de la rama predeterminada: 11 altas, 16 moderadas y 4 bajas. Evaluar aplicabilidad y corregir. |
+| Restauración con motor distinto | Ensayar en un entorno aislado con la misma versión MySQL de Railway. |
+
+## Procedimiento para regresar a una versión estable
+
+La referencia validada para volver después de cambios futuros es v1.1.0, commit 5cb4fbf2e841debd39938bd7d5a5234041f0615e. Los identificadores concretos de web, API, chatbot y MySQL se registran en railway-services.json. El responsable operativo es Stiven Bravo Malca.
+
+1. Registrar el defecto, la versión y el momento. Limitar las operaciones si existe riesgo para los datos. Si el defecto afecta al correo, establecer ALERT_EMAIL_ENABLED=false y desplegar la configuración.
+
+2. Revisar el historial de Railway. Si conserva un despliegue exitoso de la referencia estable, usar Rollback y comprobar las variables que recupera. Si no está retenido, desplegar de nuevo el SHA estable con la configuración privada guardada en los componentes afectados.
+
+3. Conservar el volumen de MySQL. Restaurar una imagen anterior no restaura datos. V8 añade una tabla: avisos_correo puede mantenerse si el código anterior no la utiliza. No ejecutar una migración destructiva para revertir solo el código.
+
+4. Si se necesita recuperar datos, poner el sistema en mantenimiento y respaldar primero el estado actual. Restaurar la copia elegida en una base independiente de la misma versión de MySQL; verificar esquema, tablas, vistas y flujo principal antes de cambiar la conexión. No sobrescribir directamente la base activa.
+
+5. Advertir qué operaciones posteriores al respaldo se perderían si esa copia pasa a ser el estado definitivo. El responsable debe aceptar ese punto de recuperación antes de sustituir la conexión.
+
+6. Comprobar salud de servicios, acceso ADMIN y WORKER, catálogo, lotes, atención, reportes, persistencia y manejo de errores. Revisar el historial antes de reactivar el correo para evitar duplicados.
+
+7. Registrar responsable, versión recuperada, duración, pruebas y resultado; conservar las evidencias y el respaldo anterior hasta cerrar la incidencia.
+
+Se verificaron el reinicio con persistencia y una restauración aislada del respaldo. No se ejecutó una reversión completa del despliegue productivo para elaborar este informe.
+
+## Comprobaciones después de desplegar o revertir
+
+La web debe devolver HTTP 200 en /login; la API debe informar UP en /actuator/health; /chat/_stcore/health debe responder 200. Una consulta protegida sin sesión debe seguir devolviendo 401. Después se repite el flujo con datos ficticios y se verifica el historial de operaciones.
+
+## Control del entorno de demostración
+
+Se configuró un límite de cómputo de US$10, aviso de US$5 y límite de Agent de US$0. La renovación mensual de Hobby permanece activa, con el ciclo observado hasta el 7 de diciembre de 2026. El límite no cancela la suscripción ni garantiza una factura total de US$5. Revisar Usage y Billing, detener los servicios al terminar las demostraciones y conservar el respaldo.
+
+Las consultas del asistente usan una clave privada de OpenAI y generan consumo separado de Railway. n8n no se desplegó: la automatización de correo se ejecuta directamente en la API.
+
+Figura 6. Captura de los controles de consumo configurados en Railway. Estos controles deben revisarse antes de cada demostración; no constituyen cancelación de la renovación.
+
+## Trazabilidad y referencias
+
+Repositorio: https://github.com/Daniel-ux1026/semaforo-digital-mass. Etiqueta: v1.1.0. Documento técnico actualizado: docs/despliegue-railway.md. Resultados originales: docs/deployment-validation. Las capturas de este Word proceden de las pruebas reales y de Railway; no son maquetas.
+
+Referencias oficiales: docs.railway.com/deployments/monorepo; docs.railway.com/deployments/deployment-actions; docs.railway.com/networking/outbound-networking; resend.com/docs/api-reference/emails/send-email; developers.openai.com/api/docs/quickstart.

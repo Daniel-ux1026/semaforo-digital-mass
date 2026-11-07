@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 test('administrador consulta el estado del correo y su historial',async({page})=>{
- const user=JSON.parse(readFileSync('.local/demo-user.json','utf8'));
+ const user=JSON.parse(readFileSync(process.env['E2E_CREDENTIALS_PATH']||'.local/demo-user.json','utf8'));
  await page.goto('/login');
  await page.getByLabel('DNI',{exact:true}).fill(user.dni);
  await page.getByLabel('Contraseña',{exact:true}).fill(user.password);

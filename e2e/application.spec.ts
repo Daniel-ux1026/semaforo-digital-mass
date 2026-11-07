@@ -1,8 +1,8 @@
 import {test,expect,APIRequestContext} from '@playwright/test';
 import {readFileSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {randomBytes,randomUUID,createHmac} from 'node:crypto';
-const env=Object.fromEntries(readFileSync('infra/.env','utf8').split(/\r?\n/).filter(Boolean).map(l=>{const i=l.indexOf('=');return [l.slice(0,i),l.slice(i+1)];}));
-const credentialsPath='.local/demo-user.json';
+const env=Object.fromEntries(readFileSync(process.env['E2E_ENV_PATH']||'infra/.env','utf8').split(/\r?\n/).filter(Boolean).map(l=>{const i=l.indexOf('=');return [l.slice(0,i),l.slice(i+1)];}));
+const credentialsPath=process.env['E2E_CREDENTIALS_PATH']||'.local/demo-user.json';
 mkdirSync('.local',{recursive:true});mkdirSync('docs/evidence',{recursive:true});
 function credentials(){return existsSync(credentialsPath)?JSON.parse(readFileSync(credentialsPath,'utf8')):{dni:env['BOOTSTRAP_DNI'],password:env['BOOTSTRAP_PASSWORD']};}
 async function api(ctx:APIRequestContext,method:string,path:string,body?:unknown,token?:string,key?:string){
@@ -153,13 +153,17 @@ test('escáner manual, código desconocido, permiso denegado y offline',async({p
  await page.getByRole('button',{name:'Abrir cámara'}).click();await expect(page.getByRole('alert')).toContainText('No se pudo abrir la cámara');await expect(page.locator('video')).not.toBeVisible();
  await context.setOffline(true);await expect(page.getByRole('alert').first()).toContainText('Sin conexión');await expect(page.getByRole('button',{name:'Confirmar ingreso'})).toBeDisabled();await context.setOffline(false);
 });
-test('JWT alterado/vencido, último administrador y límite de login',async({request})=>{
+test('JWT alterado/vencido y protecciones de acceso',async({request})=>{
  const user=credentials();const login=await api(request,'POST','/auth/login',user);expect(login.ok()).toBeTruthy();const session=await login.json();
  const parts=session.accessToken.split('.');const payload=JSON.parse(Buffer.from(parts[1],'base64url').toString());payload.exp=Math.floor(Date.now()/1000)-3600;
  const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');const signature=createHmac('sha256',env['JWT_SECRET']).update(parts[0]+'.'+encoded).digest('base64url');
  expect((await request.get('/api/auth/me',{headers:{Authorization:'Bearer '+parts[0]+'.'+encoded+'.'+signature}})).status()).toBe(401);
  expect((await request.get('/api/auth/me',{headers:{Authorization:'Bearer '+parts[0]+'.'+encoded+'.invalid'}})).status()).toBe(401);
- expect((await api(request,'PUT','/admin/users/'+session.user.id,{dni:user.dni,name:session.user.name,role:'WORKER',password:null,active:false},session.accessToken)).status()).toBe(400);
+ if(process.env['E2E_EXPECT_SINGLE_ADMIN']!=='false'){
+  expect((await api(request,'PUT','/admin/users/'+session.user.id,{dni:user.dni,name:session.user.name,role:'WORKER',password:null,active:false},session.accessToken)).status()).toBe(400);
+ }else{
+  test.info().annotations.push({type:'note',description:'La protección del último administrador se valida en las pruebas MySQL aisladas. No se modifica ningún administrador de la base compartida.'});
+ }
  const csrf=(await (await request.get('/api/auth/csrf')).json()).token;let limited=false;
  for(let i=0;i<13;i++){const response=await request.post('/api/auth/login',{data:{dni:'00009999',password:'deliberately-invalid'},headers:{'X-XSRF-TOKEN':csrf}});if(response.status()===429){limited=true;break;}expect(response.status()).toBe(401);}
  expect(limited).toBeTruthy();expect((await request.get('/api/dashboard',{headers:{Authorization:'Bearer '+session.accessToken}})).status()).toBe(200);

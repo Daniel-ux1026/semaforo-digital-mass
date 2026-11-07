@@ -1,0 +1,48 @@
+{
+  "completed": "2026-11-07T21:19:14.447Z",
+  "base": "https://semaforo-digital-mass-production.up.railway.app",
+  "results": [
+    {
+      "method": "GET",
+      "path": "/login",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/lots",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "method": "GET",
+      "path": "/chat/_stcore/health",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login (DNI inválido)",
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    }
+  ]
+}

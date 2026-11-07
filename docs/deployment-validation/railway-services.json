@@ -1,0 +1,155 @@
+{
+  "checked": "2026-11-07T21:55:54.005Z",
+  "tag": "v1.1.0",
+  "commit": "5cb4fbf2e841debd39938bd7d5a5234041f0615e",
+  "services": [
+    {
+      "id": "6fb9ae83-f142-4cb3-9f20-7629764961e1",
+      "name": "fearless-purpose",
+      "isLinked": false,
+      "source": {
+        "repo": "Daniel-ux1026/semaforo-digital-mass",
+        "image": null
+      },
+      "status": "SUCCESS",
+      "deploymentStopped": false,
+      "deploymentId": "f3933d41-1614-4cd9-a740-56391313444c",
+      "latestDeployment": {
+        "id": "f3933d41-1614-4cd9-a740-56391313444c",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-07T21:42:45.701Z",
+        "deploymentStopped": false
+      },
+      "url": "https://fearless-purpose-production-9754.up.railway.app",
+      "volumes": [],
+      "regions": [
+        {
+          "name": "iad",
+          "location": null,
+          "configured": 1
+        }
+      ],
+      "replicas": {
+        "configured": 1,
+        "running": 1,
+        "crashed": 0,
+        "exited": 0,
+        "total": 1
+      },
+      "volumeMigrating": false
+    },
+    {
+      "id": "ed85fa5f-6ea5-4b33-ad3e-021759feaf91",
+      "name": "MySQL",
+      "isLinked": false,
+      "source": {
+        "repo": null,
+        "image": "mysql@sha256:df90258da46f6e7ff8574ff84f17618aba0765cac749928299c69fd4e7cb8ad8"
+      },
+      "status": "SUCCESS",
+      "deploymentStopped": false,
+      "deploymentId": "5ead6532-c38f-4a25-9a06-db2790cde275",
+      "latestDeployment": {
+        "id": "5ead6532-c38f-4a25-9a06-db2790cde275",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-07T21:00:23.854Z",
+        "deploymentStopped": false
+      },
+      "url": null,
+      "volumes": [
+        {
+          "name": "mysql-volume",
+          "mountPath": "/var/lib/mysql",
+          "currentSizeMb": 160.251904,
+          "sizeMb": 500,
+          "state": "READY"
+        }
+      ],
+      "regions": [
+        {
+          "name": "iad",
+          "location": null,
+          "configured": 1
+        }
+      ],
+      "replicas": {
+        "configured": 1,
+        "running": 1,
+        "crashed": 0,
+        "exited": 0,
+        "total": 1
+      },
+      "volumeMigrating": false
+    },
+    {
+      "id": "75d89789-04df-420f-bfff-efb7b088c32b",
+      "name": "semaforo-chatbot",
+      "isLinked": true,
+      "source": {
+        "repo": "Daniel-ux1026/semaforo-digital-mass",
+        "image": null
+      },
+      "status": "SUCCESS",
+      "deploymentStopped": false,
+      "deploymentId": "6b3b3290-9d42-4bdd-8753-bfa48cdaa6c5",
+      "latestDeployment": {
+        "id": "6b3b3290-9d42-4bdd-8753-bfa48cdaa6c5",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-07T21:50:55.793Z",
+        "deploymentStopped": false
+      },
+      "url": "https://semaforo-chatbot-production.up.railway.app",
+      "volumes": [],
+      "regions": [
+        {
+          "name": "iad",
+          "location": null,
+          "configured": 1
+        }
+      ],
+      "replicas": {
+        "configured": 1,
+        "running": 1,
+        "crashed": 0,
+        "exited": 0,
+        "total": 1
+      },
+      "volumeMigrating": false
+    },
+    {
+      "id": "a914f58d-fd3f-4388-a354-b6b2f621701c",
+      "name": "semaforo-digital-mass",
+      "isLinked": false,
+      "source": {
+        "repo": "Daniel-ux1026/semaforo-digital-mass",
+        "image": null
+      },
+      "status": "SUCCESS",
+      "deploymentStopped": false,
+      "deploymentId": "70633a2c-e5ad-45e5-9f2e-e7a6c381e7cf",
+      "latestDeployment": {
+        "id": "70633a2c-e5ad-45e5-9f2e-e7a6c381e7cf",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-07T21:14:42.658Z",
+        "deploymentStopped": false
+      },
+      "url": "https://semaforo-digital-mass-production.up.railway.app",
+      "volumes": [],
+      "regions": [
+        {
+          "name": "iad",
+          "location": null,
+          "configured": 1
+        }
+      ],
+      "replicas": {
+        "configured": 1,
+        "running": 1,
+        "crashed": 0,
+        "exited": 0,
+        "total": 1
+      },
+      "volumeMigrating": false
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "completed": "2026-11-07T21:07:58.329Z",
+  "source": "Railway MySQL 9.7.4",
+  "restore": "Base temporal aislada en MySQL local 8.4.8; solo se ajustó el calificador de esquema en las vistas",
+  "status": "passed",
+  "checks": [
+    {
+      "table": "alertas",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "auditoria",
+      "source": 4,
+      "restored": 4
+    },
+    {
+      "table": "bloqueo_tienda",
+      "source": 1,
+      "restored": 1
+    },
+    {
+      "table": "empleado",
+      "source": 1,
+      "restored": 1
+    },
+    {
+      "table": "evaluaciones",
+      "source": 26,
+      "restored": 26
+    },
+    {
+      "table": "flyway_schema_history",
+      "source": 6,
+      "restored": 6
+    },
+    {
+      "table": "lotes",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "movimientos",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "notificaciones",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "operaciones_idempotentes",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "productos",
+      "source": 1,
+      "restored": 1
+    },
+    {
+      "table": "programador",
+      "source": 1,
+      "restored": 1
+    },
+    {
+      "table": "recepciones_servicio",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "recuperaciones_clave",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "renovaciones_sesion",
+      "source": 39,
+      "restored": 39
+    },
+    {
+      "table": "sesiones",
+      "source": 17,
+      "restored": 17
+    },
+    {
+      "table": "sesiones_chat",
+      "source": 6,
+      "restored": 6
+    },
+    {
+      "table": "solicitudes_clave",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "supervisor",
+      "source": 0,
+      "restored": 0
+    },
+    {
+      "table": "usuarios",
+      "source": 2,
+      "restored": 2
+    }
+  ],
+  "externalViewReferences": 0
+}

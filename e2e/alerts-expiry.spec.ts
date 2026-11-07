@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 
 test('aviso real de lote: sonido, cierre sin repetición y pantalla móvil',async({page,request})=>{
- const user=JSON.parse(readFileSync('.local/demo-user.json','utf8'));
+ const user=JSON.parse(readFileSync(process.env['E2E_CREDENTIALS_PATH']||'.local/demo-user.json','utf8'));
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
   const original=AudioContext.prototype.createOscillator;

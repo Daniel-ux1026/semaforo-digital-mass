@@ -1,0 +1,41 @@
+{
+  "environment": "Railway production",
+  "method": "Visor administrativo paginado de productos, lotes y movimientos; campos del historial de correos (hasta 50, solo uno existente en la prueba). SHA256 de JSON ordenado por id en el visor.",
+  "started": "2026-11-07T21:41:00.978Z",
+  "finished": "2026-11-07T21:41:31.293Z",
+  "healthy": true,
+  "results": [
+    {
+      "table": "productos",
+      "rows": 15,
+      "sha256": "16d5d5cabf66b1a0c731359558f6e47b59e111594932697909f5e2454f06fc5a",
+      "afterRows": 15,
+      "afterSha256": "16d5d5cabf66b1a0c731359558f6e47b59e111594932697909f5e2454f06fc5a",
+      "identical": true
+    },
+    {
+      "table": "lotes",
+      "rows": 13,
+      "sha256": "1be7c6c667719d3d896c7b1b9a00bf916e5f989024f67fa1a8db7cc54a96d484",
+      "afterRows": 13,
+      "afterSha256": "1be7c6c667719d3d896c7b1b9a00bf916e5f989024f67fa1a8db7cc54a96d484",
+      "identical": true
+    },
+    {
+      "table": "movimientos",
+      "rows": 14,
+      "sha256": "1511e5a733c5a58d6aa8dc438cc0e2129ee73231ec0533a7eb87893613baeec2",
+      "afterRows": 14,
+      "afterSha256": "1511e5a733c5a58d6aa8dc438cc0e2129ee73231ec0533a7eb87893613baeec2",
+      "identical": true
+    },
+    {
+      "table": "avisos_correo (campos del historial)",
+      "rows": 1,
+      "sha256": "f4c9fdcc7be4d9e655fb73c2a9739591ce64f26924d5511b35e272f97e6c1903",
+      "afterRows": 1,
+      "afterSha256": "f4c9fdcc7be4d9e655fb73c2a9739591ce64f26924d5511b35e272f97e6c1903",
+      "identical": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "base": "https://semaforo-digital-mass-production.up.railway.app",
+  "started": "2026-11-07T21:46:14.641Z",
+  "finished": "2026-11-07T21:47:01.260Z",
+  "automatic": true,
+  "testEndpointCalled": false,
+  "enabled": true,
+  "lotId": 14,
+  "code": "DEMO-RAILWAY-AUTO-1794087974641",
+  "result": {
+    "id": 12,
+    "estado": "ACCEPTED",
+    "intentos": 1,
+    "aceptado_en": "2026-11-07T21:46:55.958+00:00",
+    "ultimo_error": null
+  }
+}
