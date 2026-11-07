@@ -1,8 +1,9 @@
-import {Component,ElementRef,ViewChild,computed,inject,signal,OnInit,OnDestroy,HostListener} from '@angular/core';
+import {Component,DestroyRef,ElementRef,ViewChild,computed,inject,signal,OnInit,OnDestroy,HostListener} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {CommonModule} from '@angular/common';
 import {FormBuilder,ReactiveFormsModule,Validators} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom,Subject,takeUntil} from 'rxjs';
 import {Api,Lot,Product,Page,RecordRow,validEan} from './core';
 import {Icon} from './icon';
 import type {IScannerControls} from '@zxing/browser';
@@ -40,8 +41,12 @@ export class Workspace implements OnInit,OnDestroy {
  private expiryRevision=0;
  private dashboardRefreshing=false;
  private historyRevision=0;private loadRevision=0;private catalogRevision=0;private menuOpener?:HTMLElement;
+ private readonly destroyRef=inject(DestroyRef);
+ private readonly cancelInventoryLoad=new Subject<void>();
+ private searchTimer?:ReturnType<typeof setTimeout>;
  private controls?:IScannerControls;private cameraGeneration=0;private key=crypto.randomUUID();private receiptKey=crypto.randomUUID();private opener?:HTMLElement;
  readonly filters=this.fb.nonNullable.group({q:'',state:'',exhausted:false});
+ readonly inventoryView=computed(()=>['Resumen','Alertas','Lotes','Productos'].includes(this.view()));
  readonly productForm=this.fb.nonNullable.group({sku:['',Validators.required],ean:'',name:['',Validators.required],category:['',Validators.required],unit:'UNIDAD',warningDays:[30,Validators.min(1)],criticalDays:[15,Validators.min(0)],active:true});
  readonly lotForm=this.fb.group({productId:[null as number|null,Validators.required],code:['',Validators.required],received:[this.today(),Validators.required],expiry:['',Validators.required],quantity:[1,[Validators.required,Validators.min(0.001)]],cost:[null as number|null]});
  readonly actionForm=this.fb.nonNullable.group({source:'NORMAL',quantity:[1,Validators.required],reason:['',Validators.required],reversalOf:0});
@@ -56,6 +61,7 @@ export class Workspace implements OnInit,OnDestroy {
  today(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
  ngOnInit(){
   if(this.api.user()?.mustChange)this.view.set('Mi cuenta');
+  this.filters.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(()=>this.scheduleInventorySearch());
   void this.load();
   if(this.admin()&&!this.api.user()?.mustChange){
    void this.loadRequests();
@@ -70,6 +76,9 @@ export class Workspace implements OnInit,OnDestroy {
  ngOnDestroy(){
   clearInterval(this.notificationTimer);clearInterval(this.expiryTimer);
   this.expiryRevision++;this.loadRevision++;this.catalogRevision++;this.stopCamera();
+  clearTimeout(this.searchTimer);
+  this.cancelInventoryLoad.next();
+  this.cancelInventoryLoad.complete();
  }
  toggleMenu(open:boolean){if(open){this.menuOpener=document.activeElement as HTMLElement;this.notificationsOpen.set(false);}this.menu.set(open);setTimeout(()=>{if(open)document.querySelector<HTMLButtonElement>('.menu-close')?.focus();else this.menuOpener?.focus();});}
  @HostListener('document:keydown',['$event']) menuKeys(event:KeyboardEvent){
@@ -80,23 +89,49 @@ export class Workspace implements OnInit,OnDestroy {
  async go(view:View,state='',q=''){
   if(this.busy())return;
   this.stopCamera();this.notificationsOpen.set(false);this.view.set(view);
-  this.filters.reset({q,state,exhausted:false});
+  this.filters.reset({q,state,exhausted:false},{emitEvent:false});
   if(this.menu())this.toggleMenu(false);
   this.page.set(0);this.error.set('');this.notice.set('');this.records.set([]);this.lots.set([]);this.hasNext.set(false);
   await this.load();
   window.scrollTo(0,0);
  }
- async load(){
+ private scheduleInventorySearch(){
+  clearTimeout(this.searchTimer);
+  this.loadRevision++;
+  this.cancelInventoryLoad.next();
+  this.page.set(0);
+  this.loading.set(true);
+  this.error.set('');
+  this.searchTimer=setTimeout(()=>void this.load(false),250);
+ }
+
+ private loadInventory<T>(path:string){
+  return firstValueFrom(this.api.http.get<Page<T>>('/api'+path).pipe(takeUntil(this.cancelInventoryLoad)),{defaultValue:null});
+ }
+
+ async load(refreshRelated=true){
+  clearTimeout(this.searchTimer);
   if(this.api.user()?.mustChange&&this.view()!=='Mi cuenta'){this.view.set('Mi cuenta');return;}
-  const stamp=++this.loadRevision;this.loading.set(true);this.error.set('');
+  const stamp=++this.loadRevision;
+  this.cancelInventoryLoad.next();
+  this.loading.set(true);this.error.set('');
   try{
    const v=this.view(),page=this.page();
    if(['Resumen','Alertas','Lotes'].includes(v)){
-    const f=this.filters.getRawValue();const result=await this.api.get<Page<Lot>>(`${v==='Alertas'?'/alerts':'/lots'}?q=${encodeURIComponent(f.q)}&state=${f.state}&page=${page}&exhausted=${f.exhausted}`);if(stamp!==this.loadRevision)return;this.lots.set(result.items);this.hasNext.set(result.hasNext);
-    if(v==='Resumen'){const d=await this.api.get<Dashboard>('/dashboard');if(stamp!==this.loadRevision)return;this.setDashboard(d);}
-    if(v==='Lotes')await this.searchProducts();
+    if(refreshRelated&&v==='Resumen')void this.refreshDashboard();
+    if(refreshRelated&&v==='Lotes')void this.searchProducts();
+    const {q,state,exhausted}=this.filters.getRawValue();
+    const params=new URLSearchParams({q:q.trim(),state,page:String(page),exhausted:String(exhausted)});
+    const result=await this.loadInventory<Lot>(`${v==='Alertas'?'/alerts':'/lots'}?${params}`);
+    if(!result||stamp!==this.loadRevision)return;
+    this.lots.set(result.items);this.hasNext.set(result.hasNext);
    }else if(v==='Base de datos'){this.databaseTables.set(await this.api.get<string[]>('/admin/database'));const r=await this.api.get<Page<RecordRow>&{total:number}>('/admin/database/'+this.databaseTable()+'?page='+page);if(stamp!==this.loadRevision)return;this.records.set(r.items);this.hasNext.set(r.hasNext);this.databaseTotal.set(r.total);
-   }else if(v==='Productos'){const p=await this.api.get<Page<Product>>(`/products?q=${encodeURIComponent(this.filters.controls.q.value)}&page=${page}`);if(stamp!==this.loadRevision)return;this.products.set(p.items);this.hasNext.set(p.hasNext);}
+   }else if(v==='Productos'){
+    const params=new URLSearchParams({q:this.filters.controls.q.value.trim(),page:String(page)});
+    const result=await this.loadInventory<Product>('/products?'+params);
+    if(!result||stamp!==this.loadRevision)return;
+    this.products.set(result.items);this.hasNext.set(result.hasNext);
+   }
    else if(v==='Automatización'){const r=await this.api.get<Page<RecordRow>>('/admin/outbox/page?page='+page);if(stamp!==this.loadRevision)return;this.records.set(r.items);this.hasNext.set(r.hasNext);}
    else if(v==='Personal'||v==='Auditoría'||v==='Reportes'){
     const path=v==='Personal'?'/admin/users':v==='Auditoría'?'/admin/audit':'/admin/reports';
@@ -143,7 +178,7 @@ export class Workspace implements OnInit,OnDestroy {
  }
  expiryLabel(days:number){return days<0?'Vencido':days===0?'Vence hoy':days===1?'Vence mañana':`Vence en ${days} días`;}
  async filter(){this.page.set(0);await this.load();}
- async paginate(delta:number){this.page.update(p=>p+delta);await this.load();}
+ async paginate(delta:number){this.page.update(p=>p+delta);await this.load(false);}
  async run(work:()=>Promise<void>){if(this.busy())return;this.busy.set(true);this.error.set('');this.notice.set('');try{await work();}catch(e){this.error.set(this.api.error(e));}finally{this.busy.set(false);}}
  async deleteProduct(p:Product){await this.run(async()=>{if(!confirm('¿Dar de baja el producto? Se conserva su historial.'))return;await firstValueFrom(this.api.http.delete('/api/admin/products/'+p.id));await this.load();this.notice.set('Producto dado de baja.');});}
  async deletePerson(p:RecordRow){await this.run(async()=>{if(!confirm('¿Dar de baja esta cuenta y cerrar sus sesiones?'))return;await firstValueFrom(this.api.http.delete('/api/admin/users/'+p['id']));await this.load();this.notice.set('Cuenta dada de baja.');});}

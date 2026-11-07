@@ -7,9 +7,9 @@ import {Icon} from './icon';
  standalone:true, imports:[ReactiveFormsModule,Icon], template:`
  <div class="login-layout">
   <aside class="login-brand">
-   <div class="wordmark"><span class="brand-symbol"><mass-icon name="brand"/></span><span>Semáforo <b>Digital</b></span></div>
+   <div class="mass-lockup"><img class="mass-logo" src="icons/mass.png" alt="Mass" width="447" height="447"><span>Semáforo Digital</span></div>
    <div class="brand-copy">
-    <h1>Vencimientos<br> bajo control</h1>
+    <h2>Vencimientos<br> bajo control</h2>
     <p>Registra lotes, revisa las fechas y atiende lo más urgente.</p>
     <div class="traffic-art" aria-hidden="true">
      <span><i></i>En orden</span><span><i></i>Próximo</span><span><i></i>Crítico</span>
@@ -18,9 +18,9 @@ import {Icon} from './icon';
   </aside>
   <main class="login-form">
    <div class="login-card">
-    <div class="login-mobile-brand"><mass-icon name="brand"/> Semáforo Digital</div>
+    <div class="mass-lockup login-mobile-brand"><img class="mass-logo" src="icons/mass.png" alt="Mass" width="447" height="447"><span>Semáforo Digital</span></div>
     <div class="login-emblem" aria-hidden="true"><mass-icon name="lock"/></div>
-    <h2>Inicia sesión</h2>
+    <h1>Inicia sesión</h1>
     <p class="muted">Ingresa tu DNI y contraseña.</p>
     @if(api.expired() && !error() && api.online()){
      <div class="notice" role="status">Tu sesión venció. Vuelve a ingresar.</div>
