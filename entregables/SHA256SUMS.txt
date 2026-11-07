@@ -1,3 +1,4 @@
 ec70202f902209301e4b6ac2e673fa72391cf0e4ae7edd770cf76792524fc664  Capacidad y rendimiento.docx
 c904e64c644bbcd2b616158691174ec916b31e3ff3947580bdba9d6cb0bb3a76  Despliegue y validacion final.docx
 b798350c39d17c4bad2b730efbd6a332acfb11dbd69bfbb8e805b34026593a98  Resumen para exposicion.docx
+2786395c0a2d0b141c8a3bdd9e98a5d254c813b44229c690f14b79ec0c108184  ../output/pdf/Guia de k6.pdf
