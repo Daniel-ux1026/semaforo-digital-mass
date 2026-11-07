@@ -27,7 +27,7 @@ describe('Validación de acceso y códigos', () => {
     fixture.componentInstance.form.setValue({dni:'1234567a',password:'password-largo'});
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('button')?.disabled).toBe(true);
+    expect(compiled.querySelector<HTMLButtonElement>('button[type=submit]')?.disabled).toBe(true);
   });
   it('valida checksum EAN y rechaza códigos incorrectos',()=>{expect(validEan('7751271000017')).toBe(true);expect(validEan('7751271000016')).toBe(false);expect(validEan('123')).toBe(false);});
   it('admite EAN con ceros iniciales',()=>expect(validEan('0000000000000')).toBe(true));
