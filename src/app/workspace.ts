@@ -1,4 +1,4 @@
-import {Component,ElementRef,ViewChild,inject,signal,OnInit,OnDestroy,HostListener} from '@angular/core';
+import {Component,ElementRef,ViewChild,computed,inject,signal,OnInit,OnDestroy,HostListener} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder,ReactiveFormsModule,Validators} from '@angular/forms';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -7,6 +7,7 @@ import {Api,Lot,Product,Page,RecordRow,validEan} from './core';
 import {Icon} from './icon';
 import type {IScannerControls} from '@zxing/browser';
 type View='Resumen'|'Alertas'|'Productos'|'Lotes'|'Personal'|'Reportes'|'Auditoría'|'Automatización'|'Mi cuenta'|'Base de datos';
+type Dashboard={states:RecordRow[];lastEvaluation:RecordRow[]};
 @Component({standalone:true,imports:[CommonModule,ReactiveFormsModule,Icon],templateUrl:'./workspace.html'})
 export class Workspace implements OnInit,OnDestroy {
  api=inject(Api);fb=inject(FormBuilder);view=signal<View>('Resumen');menu=signal(false);busy=signal(false);loading=signal(false);error=signal('');notice=signal('');
@@ -16,11 +17,28 @@ export class Workspace implements OnInit,OnDestroy {
  @ViewChild('actionDialog') dialog!:ElementRef<HTMLDialogElement>;
  @ViewChild('passwordDialog') passwordDialog!:ElementRef<HTMLDialogElement>;
  @ViewChild('video') video?:ElementRef<HTMLVideoElement>;
+ @ViewChild('notificationTrigger') notificationTrigger?:ElementRef<HTMLButtonElement>;
  catalogProducts=signal<Product[]>([]);catalogQuery=this.fb.nonNullable.control('');catalogPage=0;catalogMore=signal(false);
  reportQuery=this.fb.nonNullable.control('');reportProducts=signal<Product[]>([]);
  unknownBarcode=signal(false);newProductOpen=signal(false);historyIndex=signal(0);historyMore=signal(false);historyLoading=signal(false);
  resetTarget=signal<RecordRow|null>(null);resetForm=this.fb.nonNullable.group({password:['',[Validators.required,Validators.minLength(12),Validators.maxLength(72)]],confirm:['',Validators.required]});
  requests=signal<RecordRow[]>([]);requestTotal=signal(0);requestPage=signal(0);requestMore=signal(false);notificationsOpen=signal(false);private notificationTimer?:ReturnType<typeof setInterval>;
+ readonly expiryStates=[
+  {id:'VENCIDO',label:'Vencidos',icon:'Alertas'},
+  {id:'ROJO',label:'Críticos',icon:'bell'},
+  {id:'AMARILLO',label:'Próximos a vencer',icon:'clock'},
+ ] as const;
+ readonly dashboardStates=[{id:'VERDE',label:'En orden',icon:'Lotes'},...this.expiryStates.slice().reverse()];
+ readonly dashboardReady=signal(false);
+ readonly expiryCount=computed(()=>this.expiryStates.reduce((sum,{id})=>sum+this.count(id),0));
+ readonly notificationCount=computed(()=>this.expiryCount()+this.requestTotal());
+ readonly notificationTab=signal<'expiry'|'passwords'>('expiry');
+ readonly expiryPreview=signal<Lot[]>([]);
+ readonly expiryLoading=signal(false);
+ readonly expiryError=signal(false);
+ private expiryTimer?:ReturnType<typeof setInterval>;
+ private expiryRevision=0;
+ private dashboardRefreshing=false;
  private historyRevision=0;private loadRevision=0;private catalogRevision=0;private menuOpener?:HTMLElement;
  private controls?:IScannerControls;private cameraGeneration=0;private key=crypto.randomUUID();private receiptKey=crypto.randomUUID();private opener?:HTMLElement;
  readonly filters=this.fb.nonNullable.group({q:'',state:'',exhausted:false});
@@ -36,12 +54,38 @@ export class Workspace implements OnInit,OnDestroy {
  manager(){return ['ADMIN','SUPERVISOR'].includes(this.api.user()?.role??'');}
  nav():View[]{return this.admin()?['Resumen','Alertas','Productos','Lotes','Reportes','Personal','Auditoría','Automatización','Base de datos','Mi cuenta']:this.manager()?['Resumen','Alertas','Productos','Lotes','Reportes','Mi cuenta']:['Resumen','Alertas','Productos','Lotes','Mi cuenta'];}
  today(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
- ngOnInit(){if(this.api.user()?.mustChange)this.view.set('Mi cuenta');void this.load();if(this.admin()){void this.loadRequests();this.notificationTimer=setInterval(()=>{if(this.api.online())void this.loadRequests();},3000);}}
- ngOnDestroy(){clearInterval(this.notificationTimer);this.loadRevision++;this.catalogRevision++;this.stopCamera();}
- toggleMenu(open:boolean){if(open)this.menuOpener=document.activeElement as HTMLElement;this.menu.set(open);setTimeout(()=>{if(open)document.querySelector<HTMLButtonElement>('.menu-close')?.focus();else this.menuOpener?.focus();});}
- @HostListener('document:keydown',['$event']) menuKeys(event:KeyboardEvent){if(!this.menu())return;if(event.key==='Escape'){event.preventDefault();this.toggleMenu(false);}if(event.key==='Tab'){const controls=[...document.querySelectorAll<HTMLElement>('.sidebar button:not([disabled]),.sidebar a')].filter(e=>e.getClientRects().length);const first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
+ ngOnInit(){
+  if(this.api.user()?.mustChange)this.view.set('Mi cuenta');
+  void this.load();
+  if(this.admin()&&!this.api.user()?.mustChange){
+   void this.loadRequests();
+   this.notificationTimer=setInterval(()=>{if(this.api.online()&&!document.hidden)void this.loadRequests();},3000);
+  }
+  this.expiryTimer=setInterval(()=>{
+   if(document.hidden||!this.api.online())return;
+   if(this.notificationsOpen()&&this.notificationTab()==='expiry')void this.loadExpiryPreview();
+   else void this.refreshDashboard();
+  },45000);
+ }
+ ngOnDestroy(){
+  clearInterval(this.notificationTimer);clearInterval(this.expiryTimer);
+  this.expiryRevision++;this.loadRevision++;this.catalogRevision++;this.stopCamera();
+ }
+ toggleMenu(open:boolean){if(open){this.menuOpener=document.activeElement as HTMLElement;this.notificationsOpen.set(false);}this.menu.set(open);setTimeout(()=>{if(open)document.querySelector<HTMLButtonElement>('.menu-close')?.focus();else this.menuOpener?.focus();});}
+ @HostListener('document:keydown',['$event']) menuKeys(event:KeyboardEvent){
+  if(event.key==='Escape'&&this.notificationsOpen()&&!this.selected()&&!this.resetTarget()){this.closeNotifications();return;}
+  if(!this.menu())return;if(event.key==='Escape'){event.preventDefault();this.toggleMenu(false);}if(event.key==='Tab'){const controls=[...document.querySelectorAll<HTMLElement>('.sidebar button:not([disabled]),.sidebar a')].filter(e=>e.getClientRects().length);const first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
+ }
 
- async go(view:View,state=''){this.stopCamera();if(this.busy())return;this.view.set(view);this.filters.reset({q:'',state:'',exhausted:false});if(state)this.filters.controls.state.setValue(state);if(view==='Alertas'){this.filters.controls.state.setValue(state);this.filters.controls.exhausted.setValue(false);}if(this.menu())this.toggleMenu(false);this.page.set(0);this.error.set('');this.notice.set('');this.records.set([]);this.lots.set([]);this.hasNext.set(false);await this.load();}
+ async go(view:View,state='',q=''){
+  if(this.busy())return;
+  this.stopCamera();this.notificationsOpen.set(false);this.view.set(view);
+  this.filters.reset({q,state,exhausted:false});
+  if(this.menu())this.toggleMenu(false);
+  this.page.set(0);this.error.set('');this.notice.set('');this.records.set([]);this.lots.set([]);this.hasNext.set(false);
+  await this.load();
+  window.scrollTo(0,0);
+ }
  async load(){
   if(this.api.user()?.mustChange&&this.view()!=='Mi cuenta'){this.view.set('Mi cuenta');return;}
   const stamp=++this.loadRevision;this.loading.set(true);this.error.set('');
@@ -49,7 +93,7 @@ export class Workspace implements OnInit,OnDestroy {
    const v=this.view(),page=this.page();
    if(['Resumen','Alertas','Lotes'].includes(v)){
     const f=this.filters.getRawValue();const result=await this.api.get<Page<Lot>>(`${v==='Alertas'?'/alerts':'/lots'}?q=${encodeURIComponent(f.q)}&state=${f.state}&page=${page}&exhausted=${f.exhausted}`);if(stamp!==this.loadRevision)return;this.lots.set(result.items);this.hasNext.set(result.hasNext);
-    if(v==='Resumen'){const d=await this.api.get<{states:RecordRow[];lastEvaluation:RecordRow[]}>('/dashboard');if(stamp!==this.loadRevision)return;this.states.set(d.states);this.evaluation.set(d.lastEvaluation);}
+    if(v==='Resumen'){const d=await this.api.get<Dashboard>('/dashboard');if(stamp!==this.loadRevision)return;this.setDashboard(d);}
     if(v==='Lotes')await this.searchProducts();
    }else if(v==='Base de datos'){this.databaseTables.set(await this.api.get<string[]>('/admin/database'));const r=await this.api.get<Page<RecordRow>&{total:number}>('/admin/database/'+this.databaseTable()+'?page='+page);if(stamp!==this.loadRevision)return;this.records.set(r.items);this.hasNext.set(r.hasNext);this.databaseTotal.set(r.total);
    }else if(v==='Productos'){const p=await this.api.get<Page<Product>>(`/products?q=${encodeURIComponent(this.filters.controls.q.value)}&page=${page}`);if(stamp!==this.loadRevision)return;this.products.set(p.items);this.hasNext.set(p.hasNext);}
@@ -61,7 +105,43 @@ export class Workspace implements OnInit,OnDestroy {
    }
   }catch(e){if(stamp===this.loadRevision)this.error.set(this.api.error(e));}finally{if(stamp===this.loadRevision)this.loading.set(false);}
  }
- count(state:string){return this.states().find(s=>s['state']===state)?.['lots']??0;}
+ private setDashboard(d:Dashboard){this.states.set(d.states);this.evaluation.set(d.lastEvaluation);this.dashboardReady.set(true);}
+ count(state:string){return Number(this.states().find(s=>s['state']===state)?.['lots']??0);}
+ async refreshDashboard(){
+  if(this.dashboardRefreshing||!this.api.online()||this.api.user()?.mustChange)return;
+  this.dashboardRefreshing=true;
+  try{this.setDashboard(await this.api.get<Dashboard>('/dashboard'));}
+  catch{/* Mantener el último recuento disponible. */}
+  finally{this.dashboardRefreshing=false;}
+ }
+ toggleNotifications(){
+  if(this.notificationsOpen()){this.closeNotifications();return;}
+  this.notificationsOpen.set(true);this.selectNotificationTab('expiry');
+ }
+ closeNotifications(){this.notificationsOpen.set(false);this.notificationTrigger?.nativeElement.focus();}
+ selectNotificationTab(tab:'expiry'|'passwords'){
+  this.notificationTab.set(tab);
+  if(tab==='expiry')void this.loadExpiryPreview();
+  else void this.loadRequests();
+ }
+ async loadExpiryPreview(){
+  const stamp=++this.expiryRevision;
+  this.expiryError.set(false);
+  if(!this.api.online()){this.expiryLoading.set(false);this.expiryError.set(true);return;}
+  this.expiryLoading.set(true);
+  try{
+   const [dashboard,critical,soon]=await Promise.all([
+    this.api.get<Dashboard>('/dashboard'),
+    this.api.get<Page<Lot>>('/alerts?state=ROJO'),
+    this.api.get<Page<Lot>>('/alerts?state=AMARILLO'),
+   ]);
+   if(stamp!==this.expiryRevision)return;
+   this.setDashboard(dashboard);
+   this.expiryPreview.set([...critical.items.slice(0,2),...soon.items.slice(0,2)]);
+  }catch{if(stamp===this.expiryRevision)this.expiryError.set(true);}
+  finally{if(stamp===this.expiryRevision)this.expiryLoading.set(false);}
+ }
+ expiryLabel(days:number){return days<0?'Vencido':days===0?'Vence hoy':days===1?'Vence mañana':`Vence en ${days} días`;}
  async filter(){this.page.set(0);await this.load();}
  async paginate(delta:number){this.page.update(p=>p+delta);await this.load();}
  async run(work:()=>Promise<void>){if(this.busy())return;this.busy.set(true);this.error.set('');this.notice.set('');try{await work();}catch(e){this.error.set(this.api.error(e));}finally{this.busy.set(false);}}
