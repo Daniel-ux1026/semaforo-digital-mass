@@ -1,42 +1,64 @@
-# GitHub: ramas, integración, entrega y despliegue
+# Ramas, integración y despliegue
 
-Repositorio privado: Daniel-ux1026/semaforo-digital-mass. Commits en español. Usar dev para cambios de prueba, pull request a main y CI aprobado antes de integrar. main es la rama por defecto y está protegida: exige los cinco controles de CI, rechaza borrados y subidas forzadas, incluso para administradores. Conservar las ramas; no subir .env ni datos de MySQL.
+El repositorio público **Daniel-ux1026/semaforo-digital-mass** conserva las ramas **dev** y **main**. Los cambios se preparan en dev y se incorporan a main mediante una solicitud de cambios, con mensajes de commit en español.
 
-## Integración continua
+## Estado actual
 
-ci.yml se ejecuta con push a main/dev, pull requests y ejecución manual. Comprueba build y las siete pruebas Angular tanto con Vitest/jsdom como en Chromium real; tests Java/MySQL (Testcontainers), SpotBugs y construcción de las tres imágenes. También revisa archivos versionados por patrones de secretos. Acciones fijadas a SHA. Token de CI solo lectura; las pruebas no usan claves de OpenAI, SMTP ni acceso al servidor.
+GitHub Actions está desactivado temporalmente desde la configuración del repositorio, a petición del responsable del proyecto. Los archivos de los workflows permanecen versionados para su reactivación.
 
-CI bloquea vulnerabilidades altas/críticas en todas las dependencias, incluidas las herramientas de desarrollo. Se actualizaron Angular CLI/build a 20.3.39, Piscina a 5.3.2, source-map-js a 1.2.2 y http-cache-semantics a 4.3.0. La alerta OAuth del SDK MCP se resuelve mediante la versión corregida que usa el CLI.
+Durante la pausa, las pruebas se ejecutan localmente. La construcción automática de imágenes, su publicación en GHCR y el despliegue automatizado quedan pausados junto con Actions.
 
-La alerta #2 de braces se resuelve eliminando Karma, Jasmine y sus adaptadores del árbol de dependencias. Las siete pruebas se migran a Vitest 5.0.3 mediante la integración Analog 2.8.0, que admite Angular 20. Se ejecutan en jsdom y Chromium, sin omitir casos ni desestimar la alerta de Dependabot. Angular y TypeScript conservan sus versiones; la compilación sigue usando el builder application original.
+La protección de main exige comprobaciones de CI. Mientras esas comprobaciones sigan configuradas y Actions esté desactivado, GitHub puede bloquear una incorporación a main. Cualquier excepción administrativa o modificación de esa política requiere autorización del responsable del repositorio.
 
-vite.config.ts configura las pruebas y src/test-setup.ts inicializa TestBed sin Zone.js, con destrucción de los componentes después de cada caso. npm test ejecuta jsdom y npm run test:browser ejecuta Chromium. CI verifica también los tipos con tsc. El override de vitest en @angular/build ajusta un peer opcional del ejecutor antiguo, que ya no se usa; las pruebas se ejecutan con Analog. No cambia la implementación ni la versión de Angular.
+## Integración continua preparada
 
-Fuentes: https://github.com/micromatch/braces/issues/70 y https://analogjs.org/docs/features/testing/vitest. Corrección de Piscina: https://github.com/piscinajs/piscina/security/advisories/GHSA-67c8-pqhq-4rmx.
+[ci.yml](../.github/workflows/ci.yml) define ejecuciones para push a main o dev, pull requests y lanzamiento manual cuando Actions esté habilitado.
 
-## Entrega
+| Trabajo | Verificaciones |
+| --- | --- |
+| Frontend | Instalación reproducible, patrones de secretos, auditoría npm, compilación, pruebas Angular, revisión de tipos y ejecución en Chromium. |
+| Backend | Pruebas Java, migraciones en MySQL con Testcontainers y análisis SpotBugs. |
+| Contenedores | Construcción de las imágenes de API, web y chatbot. |
 
-entrega-despliegue.yml espera CI aprobado para un push del propio repositorio en main o dev. Publica api, web y chatbot en ghcr.io/daniel-ux1026/semaforo-digital-mass con SHA completo y etiqueta de rama. La publicación usa GITHUB_TOKEN temporal con permiso packages:write. No publica imágenes desde pull requests ni forks.
+Las acciones utilizadas están fijadas por SHA y los permisos del workflow de CI se limitan a lectura del repositorio. Las pruebas de CI utilizan datos de prueba.
 
-## Estado del despliegue
+Los comandos locales se detallan en la sección [Pruebas del README](../README.md#pruebas). Los recorridos de Playwright modifican datos y deben ejecutarse sobre una instancia de pruebas.
 
-Preparado para servidor Linux por SSH, desactivado por DEPLOY_ENABLED=false. No existe todavía un servidor configurado ni se enviaron credenciales reales a GitHub. Publicar imágenes no significa que la aplicación esté alojada en Internet. No usar GitHub Pages: requiere backend y MySQL.
+## Entrega de imágenes
 
-El alojamiento requiere un servidor Linux propio, Docker Compose, Git, Node 24, dominio HTTPS y una instalación inicial con volúmenes, infra/.env privado, usuario migrador y credenciales de lectura para repo/GHCR. Los puertos quedan en localhost; un proxy TLS del servidor publica la web. Configurar APP_ORIGIN=https://tu-dominio y SECURE_COOKIE=true. Administrar n8n por acceso privado.
+[entrega-despliegue.yml](../.github/workflows/entrega-despliegue.yml) espera una ejecución de CI aprobada para un push del propio repositorio en main o dev. El trabajo de entrega publica las imágenes de API, web y chatbot en GitHub Container Registry con una etiqueta de commit y otra de rama.
 
-Cuando el servidor exista, ir a Settings > Environments > produccion. Variables: SSH_HOST, SSH_USER, SSH_PORT, DEPLOY_PATH. Secretos: SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, REGISTRY_USER, REGISTRY_TOKEN (solo read:packages para imágenes privadas). Verificar huella del servidor con su proveedor antes de guardar known_hosts; no copiar claves a este chat. Usar usuario SSH dedicado con acceso limitado al proyecto; acceso a Docker implica privilegios elevados.
+La publicación utiliza el token temporal de GitHub con permiso de escritura en paquetes. La generación de imágenes prepara artefactos para el despliegue.
 
-DEPLOY_ENABLED es variable de repositorio. Mantener false mientras falte la configuración y cambiar a true solo al autorizar el servidor preparado. El entorno produccion acepta únicamente main. GitHub rechazó la protección por revisores obligatorios porque el plan actual no la admite en este repositorio privado. La protección de main sí está habilitada. Antes de activar producción, revisar si el plan permite añadir aprobaciones del entorno.
+## Preparación de producción
 
-El despliegue solo usa main aprobado, verifica host SSH, descarga imágenes por SHA, respalda/verifica restauración de MySQL, conserva volúmenes, aplica migraciones con usuario separado y comprueba salud. No usa contraseñas en argumentos ni desactiva StrictHostKeyChecking. Las credenciales temporales del runner y Docker se eliminan al terminar.
+La configuración de despliegue está preparada para un servidor Linux con Docker por SSH. Su ejecución depende de **DEPLOY_ENABLED=true**, de una ejecución de CI aprobada en main y de la configuración del entorno **produccion**.
 
-Una migración de BD puede requerir recuperación manual; no se revierte automáticamente el esquema si falla la salud. Conservar respaldo anterior, SHA previo y procedimiento de restauración. Falta probar el despliegue contra un servidor real antes de considerarlo validado.
+| Configuración | Valores previstos |
+| --- | --- |
+| Variables del entorno | SSH_HOST, SSH_USER, SSH_PORT, DEPLOY_PATH |
+| Secretos del entorno | SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, REGISTRY_USER, REGISTRY_TOKEN |
+| Configuración privada del servidor | infra/.env, origen HTTPS y cookies seguras |
 
-## Archivos publicados
+El servidor debe disponer de Docker Compose, Git, Node.js, almacenamiento persistente para MySQL y acceso al registro de imágenes. La huella SSH se verifica antes de guardar SSH_KNOWN_HOSTS.
 
-Fuentes Angular/Java/Python, package-lock, Maven wrapper, migraciones, flujos n8n sin credenciales, Docker, scripts operativos, pruebas vigentes y documentación mínima. Se excluyen .local, infra/.env, respaldos, datos exportados, informes JSON, capturas, node_modules, target y dist. Se revisa además que los secretos de .env local no aparezcan en los archivos del primer commit.
+Los scripts descargan imágenes por commit, respaldan MySQL, comprueban una restauración y verifican la salud después de iniciar los servicios. Las migraciones pueden requerir recuperación manual del esquema y deben acompañarse de un respaldo anterior.
 
-## Fuentes
+La puesta en producción todavía requiere validación contra el servidor real y su dirección pública.
 
-- https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images
-- https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+## Reactivación de Actions
+
+1. Resolver el estado de la cuenta que impedía iniciar los trabajos.
+2. Revisar **Settings → Actions → General** y habilitar GitHub Actions.
+3. Restaurar la política previa de acciones seleccionadas y de referencias fijadas por SHA.
+4. Revisar las comprobaciones obligatorias de main y su correspondencia con los nombres de los trabajos.
+5. Ejecutar CI sobre dev, comprobar sus resultados y después incorporar los cambios a main.
+6. Comprobar por separado la publicación de imágenes y el estado de DEPLOY_ENABLED.
+
+El despliegue se activa cuando su servidor y sus secretos estén configurados y validados.
+
+## Material versionado
+
+Se publican fuentes, dependencias declaradas, migraciones, SQL de demostración, pruebas, scripts y documentación. Las capturas del README contienen datos ficticios.
+
+Los archivos **infra/.env**, **.local/**, los respaldos, las exportaciones privadas y los directorios de dependencias o compilación se excluyen mediante .gitignore. **scripts/check-tracked-secrets.mjs** revisa los archivos versionados.
