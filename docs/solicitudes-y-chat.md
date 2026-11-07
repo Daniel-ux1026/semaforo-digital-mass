@@ -1,13 +1,31 @@
-# Contraseñas y chatbot — política vigente del 09/10/2026
+# Contraseñas, notificaciones y chatbot
 
-Solo el programador administrador puede asignar y restablecer contraseñas de empleados y supervisores. Las nuevas cuentas y los restablecimientos permiten ingresar directamente; no exigen cambio propio. V6 elimina la obligación pendiente en las cuentas de personal existentes sin cambiar su contraseña.
+## Solicitudes de contraseña
 
-En Mi cuenta, el personal ve: «Para restablecer contraseña debe enviar una solicitud al programador», con un botón para enviarla. Se guarda en solicitudes_clave, con una sola solicitud pendiente por cuenta. El programador ve un botón de campana con contador; consulta automáticamente cada tres segundos. Es actualización mediante polling, no WebSocket. El panel pagina las solicitudes y abre el formulario enmascarado para asignar la nueva clave. Guardar la clave BCrypt en BD resuelve la solicitud, registra auditoría y revoca las sesiones previas. El programador debe comunicar la clave al usuario por un canal privado acordado; las notificaciones no contienen contraseñas.
+Solo el programador puede asignar y restablecer contraseñas de empleados y supervisores. El personal ingresa con la clave asignada y solicita su cambio desde **Mi cuenta**, con una sesión activa.
 
-El bloqueo también se aplica a POST /auth/password y a recuperación por correo: empleados y supervisores no pueden eludir el flujo desde API o /restablecer. El programador conserva cambio propio y recuperación por correo si configura SMTP. El enlace simulado del login conserva su comportamiento.
+La solicitud se guarda en **solicitudes_clave**. Cada cuenta puede tener una solicitud pendiente. El programador la consulta en la pestaña **Contraseñas** de la campana y utiliza el formulario de restablecimiento para asignar la nueva clave.
 
-El chatbot está disponible para los tres roles mediante /chat/session. El ticket valida sesión activa, usuario y expiración; la salida no modifica datos. Empleados y supervisores reciben alertas y cantidades de merma sin costos ni pérdidas monetarias. No se entregan datos de cuentas o solicitudes a GPT. Las consultas locales antiguas de n8n siguen siendo solo del programador.
+Al guardar, la API almacena la contraseña con BCrypt, resuelve la solicitud, registra la operación en auditoría y revoca las sesiones anteriores de esa cuenta. El programador comunica la nueva clave mediante un canal privado acordado.
 
-Pruebas: 31 pruebas backend aprobadas, siete Angular aprobadas y recorrido real de empleado/supervisor con solicitud duplicada controlada, aparición automática en panel, restablecimiento guardado, rechazo de clave anterior, revocación de sesión, ingreso con la asignada y disponibilidad de Streamlit. No se enviaron consultas pagadas a GPT. Dos cuentas temporales desactivadas al finalizar. Evidencia: password-policy-verification.json y password-policy-java.log. El visor ahora incluye 19 tablas de negocio.
+El panel consulta las solicitudes cada tres segundos mientras la página está visible y mantiene su paginación. La autorización también se aplica en el servidor. El empleado y el supervisor tienen restringidos el cambio de clave propio y la recuperación por correo.
 
-Las pruebas y guías anteriores que exigían cambio de clave temporal al personal quedan reemplazadas por esta política. Una persona que ya no puede iniciar sesión deberá pedir al programador el restablecimiento fuera del panel; este flujo de solicitud requiere una sesión activa.
+La recuperación por SMTP corresponde al programador y requiere configurar el correo. El inicio de sesión muestra el formulario de acceso y el logo de Mass. Una persona que haya perdido el acceso debe solicitar el restablecimiento al programador por un canal externo.
+
+## Notificaciones de vencimiento
+
+La campana está disponible para los tres roles. Muestra los recuentos de lotes vencidos, críticos y próximos a vencer, junto con una selección de lotes para revisar.
+
+Al seleccionar un estado se abre el listado correspondiente. Al seleccionar un lote se aplica su código como búsqueda. La pestaña de solicitudes de contraseña es exclusiva del programador.
+
+El panel consulta los vencimientos al abrirse y se actualiza cada 45 segundos mientras la página está visible. Esta actualización utiliza consultas periódicas a la API.
+
+## Asistente
+
+Los tres roles pueden abrir una sesión del asistente desde su panel. La API valida la cuenta, la sesión y la caducidad del acceso antes de entregar el contexto a Streamlit.
+
+El contexto se limita al inventario permitido por rol. Empleados y supervisores reciben cantidades y alertas sin costos ni pérdidas monetarias. Los datos de cuentas y las solicitudes de contraseña quedan fuera del contexto de GPT.
+
+El asistente realiza consultas de apoyo. Las operaciones de inventario se registran desde los formularios de la aplicación. Las consultas locales de n8n están reservadas al programador.
+
+La conexión a OpenAI requiere **OPENAI_API_KEY**, un modelo disponible y cuota de API. Las pruebas y las capturas de la documentación utilizan datos ficticios.
