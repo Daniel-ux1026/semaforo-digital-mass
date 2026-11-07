@@ -8,6 +8,8 @@ Documentos actualizados al 7 de noviembre de 2026. Los Word incluyen la document
 | [Despliegue y validación final](Despliegue%20y%20validacion%20final.docx) | Punto 23: Railway, versión, acceso, despliegue, pruebas, persistencia, permisos, errores, regresión, defectos conocidos y reversión. Incluye GPT validado. |
 | [Resumen para exposición](Resumen%20para%20exposicion.docx) | Una sola página con tecnologías, puntos 22 y 23, despliegue y uso del correo en lenguaje sencillo. |
 | [Cómo se utilizó k6](../output/pdf/Guia%20de%20k6.pdf) | PDF de dos páginas: script, ejecución con Docker, escenarios, resultados y elaboración de gráficos con Python y Matplotlib. |
+| [Presentación de los puntos 18 al 23 en PowerPoint](../output/presentacion/Presentacion%20puntos%2018%20al%2023.pptx) | Trece diapositivas editables basadas en APF3-Integrador, con el estilo visual solicitado. Incluye notas para exposición. |
+| [Presentación de los puntos 18 al 23 en PDF](../output/presentacion/Presentacion%20puntos%2018%20al%2023.pdf) | La misma presentación exportada desde PowerPoint para visualizar y compartir. |
 
 ## Evidencias y código
 
@@ -17,6 +19,6 @@ Documentos actualizados al 7 de noviembre de 2026. Los Word incluyen la document
 - [Procedimiento de despliegue y recuperación](../docs/despliegue-railway.md).
 - [Aplicación publicada](https://semaforo-digital-mass-production.up.railway.app/login).
 
-El código funcional está identificado por `v1.1.0`; los documentos y resultados posteriores se conservan en la rama `codex/preparar-version-final`. `SHA256SUMS.txt` permite comprobar la integridad de los tres Word y del PDF.
+El código funcional está identificado por `v1.1.0`; los documentos y resultados posteriores se conservan en la rama `codex/preparar-version-final`. `SHA256SUMS.txt` permite comprobar la integridad de los documentos y presentaciones indicados.
 
 GitHub conserva el código y estos documentos. Para volver a desplegar se necesitan las variables privadas de los proveedores. Las contraseñas, claves API y copias con datos privados de MySQL no forman parte de esta publicación.
