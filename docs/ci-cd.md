@@ -42,6 +42,10 @@ La configuración de despliegue está preparada para un servidor Linux con Docke
 
 El servidor debe disponer de Docker Compose, Git, Node.js, almacenamiento persistente para MySQL y acceso al registro de imágenes. La huella SSH se verifica antes de guardar SSH_KNOWN_HOSTS.
 
+El arranque local y el despliegue preparan el migrador antes de iniciar la API. La migración V7 transfiere la ejecución de los disparadores de perfiles al migrador. Después de aplicar las migraciones se comprueba esa propiedad, se limitan los permisos de la cuenta de aplicación y se reinicia la API para abrir conexiones con esos permisos.
+
+La validación local de V7 comprobó una instalación vacía y la recuperación de una instalación V6 cuyo administrador no se había creado. Pasaron las 32 pruebas Java/MySQL, SpotBugs y los cuatro recorridos Playwright. También se comprobaron el alta de personal, el cambio de empleado a supervisor y de vuelta a empleado con la cuenta de aplicación limitada. Tras reiniciar MySQL y la API se conservaron los 11 lotes y 12 movimientos de la prueba. Estas comprobaciones deben repetirse en la plataforma elegida antes de aceptar el despliegue público.
+
 Los scripts descargan imágenes por commit, respaldan MySQL, comprueban una restauración y verifican la salud después de iniciar los servicios. Las migraciones pueden requerir recuperación manual del esquema y deben acompañarse de un respaldo anterior.
 
 La puesta en producción todavía requiere validación contra el servidor real y su dirección pública.

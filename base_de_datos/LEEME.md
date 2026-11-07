@@ -30,7 +30,7 @@ node base_de_datos/exportar-estructura.mjs
 
 Para visualizar este SQL en Workbench, crea una base vacía independiente, selecciónala con `USE nombre_de_tu_base;` y ejecuta el archivo. Los nombres ingleses corresponden a vistas de compatibilidad. El archivo no contiene cuentas ni contraseñas y no agrega registros.
 
-Para instalar o actualizar la aplicación, ejecuta `INICIAR_PROYECTO.bat`: Flyway aplica las migraciones V1 a V6. No importes esta copia de estructura en la base operativa; una estructura ya creada con un historial Flyway vacío no sustituye la ejecución de las migraciones.
+Para instalar o actualizar la aplicación, ejecuta `INICIAR_PROYECTO.bat`. El inicio prepara el usuario migrador antes de arrancar la API y Flyway aplica V1 a V7. V7 recrea los disparadores de perfiles con el migrador como propietario para que el primer acceso y la administración de cuentas funcionen con los permisos limitados de la aplicación. No importes esta copia de estructura en la base operativa; una estructura ya creada con un historial Flyway vacío no sustituye la ejecución de las migraciones.
 
 ## Instalar desde GitHub y cargar los ejemplos
 

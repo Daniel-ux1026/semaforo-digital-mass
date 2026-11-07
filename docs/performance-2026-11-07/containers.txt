@@ -1,0 +1,2 @@
+/semaforo-final-1107-api-1 image=sha256:f232aa5bf6e0246e44b0d0c1426651378416c1656b531dd75398f26ec0e0acad limitsCPU=0 limitsMemory=0
+/semaforo-final-1107-mysql-1 image=sha256:2952e3be7807f06fc18de50b3ea1a632d5c70d63482ff7d7376fe3aa8999babf limitsCPU=0 limitsMemory=0

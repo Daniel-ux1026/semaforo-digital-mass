@@ -29,6 +29,7 @@ test('recorrido real: acceso, catálogo, lotes, atención y móvil',async({page,
   await expect(page.getByRole('heading',{name:'Inicia sesión'})).toBeVisible();user.password=password;writeFileSync(credentialsPath,JSON.stringify(user));await page.getByLabel('DNI',{exact:true}).fill(user.dni);await page.getByLabel('Contraseña',{exact:true}).fill(user.password);await page.getByRole('button',{name:'Ingresar a mi tienda'}).click();
  }
  await expect(page.getByRole('heading',{name:'Resumen',exact:true})).toBeVisible();
+ const expiryNotice=page.getByRole('alert',{name:'Aviso de vencimiento'});
  // Explicit demonstration records, never presented as corporate inventory.
  const login=await api(request,'POST','/auth/login',user);expect(login.ok()).toBeTruthy();const token=(await login.json()).accessToken;
  const tag=Date.now().toString();
@@ -50,7 +51,10 @@ test('recorrido real: acceso, catálogo, lotes, atención y móvil',async({page,
   const today=new Date();const expiry=new Date(today);expiry.setUTCDate(expiry.getUTCDate()+days);const received=new Date(today);received.setUTCDate(received.getUTCDate()-10);
   const l=await api(request,'POST','/lots',{productId:id,code:'DEMO-'+tag+'-'+i,received:received.toISOString().slice(0,10),expiry:expiry.toISOString().slice(0,10),quantity:20,cost:i===3?null:2.5},token,randomUUID());expect(l.ok()).toBeTruthy();
  }
- await page.getByRole('button',{name:'Actualizar',exact:false}).first().click();await expect(page.getByText('Yogur de fresa refrigerado').first()).toBeVisible();
+ if(await expiryNotice.isVisible())await expiryNotice.getByRole('button',{name:'Cerrar aviso de vencimiento'}).click();
+ await page.getByRole('button',{name:'Actualizar',exact:false}).first().click();
+ await expect(expiryNotice).toBeVisible();
+ await expiryNotice.getByRole('button',{name:'Cerrar aviso de vencimiento'}).click();
  const search=page.getByRole('searchbox',{name:'Buscar'});
  const lotSearches:string[]=[];
  const countLots=(req:{url():string})=>{
@@ -59,12 +63,12 @@ test('recorrido real: acceso, catálogo, lotes, atención y móvil',async({page,
  };
  page.on('request',countLots);
  await search.pressSequentially('leche gloria',{delay:20});
- await expect(page.getByRole('row').filter({hasText:'Leche Gloria entera'})).toBeVisible();
+ await expect(page.getByRole('row').filter({hasText:'Leche Gloria entera'}).last()).toBeVisible();
  await expect(page.getByRole('row').filter({hasText:'Yogur de fresa refrigerado'})).toHaveCount(0);
  expect(lotSearches).toEqual(['leche gloria']);
  page.off('request',countLots);
- await search.clear();
- await expect(page.getByRole('row').filter({hasText:'Yogur de fresa refrigerado'})).toBeVisible();
+ await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/lots'&&new URL(r.url()).searchParams.get('q')===''&&r.ok()),search.clear()]);
+ await expect(page.getByRole('row').nth(1)).toBeVisible();
  const notifications=page.getByRole('button',{name:'Notificaciones',exact:true});
  await notifications.click();
  const panel=page.locator('#notification-panel');
@@ -72,15 +76,16 @@ test('recorrido real: acceso, catálogo, lotes, atención y móvil',async({page,
  await expect(page.getByRole('heading',{name:'Alertas',exact:true})).toBeVisible();
  await expect(page.getByRole('combobox',{name:'Estado'})).toHaveValue('ROJO');
  await search.fill('Queso fresco');
- await expect(page.getByRole('row').filter({hasText:'Queso fresco refrigerado'})).toBeVisible();
+ await expect(page.getByRole('row').filter({hasText:'Queso fresco refrigerado'}).last()).toBeVisible();
  await page.getByRole('combobox',{name:'Estado'}).selectOption('AMARILLO');
  await expect(page.getByText('Sin lotes en esta vista')).toBeVisible();
  await search.fill('Yogur');
- await expect(page.getByRole('row').filter({hasText:'Yogur de fresa refrigerado'})).toBeVisible();
+ await expect(page.getByRole('row').filter({hasText:'Yogur de fresa refrigerado'}).last()).toBeVisible();
  await page.getByRole('button',{name:'Lotes',exact:true}).click();
  await search.fill('DEMO-'+tag+'-4');
  await expect(page.getByRole('row').filter({hasText:'Aceite vegetal'})).toBeVisible();
  await page.getByRole('button',{name:'Resumen',exact:true}).click();
+ await search.fill('DEMO-'+tag+'-2');
  await page.screenshot({path:'docs/evidence/dashboard-desktop.png',fullPage:true});
  const row=page.getByRole('row').filter({hasText:'Arroz extra'}).last();await row.getByRole('button',{name:'Atender'}).click();
  await expect(page.getByRole('dialog')).toBeVisible();expect(await page.locator('.content-shell').evaluate(e=>getComputedStyle(e).filter)).toContain('blur');expect(await page.locator('.sidebar').evaluate(e=>getComputedStyle(e).filter)).toBe('none');
@@ -89,12 +94,15 @@ test('recorrido real: acceso, catálogo, lotes, atención y móvil',async({page,
  page.once('dialog',d=>d.accept());await page.getByRole('dialog').getByRole('button',{name:'Promoción',exact:true}).click();await expect(page.getByRole('dialog')).not.toBeVisible();await expect(page.getByText('Acción registrada.')).toBeVisible();
  await page.getByRole('button',{name:'Productos',exact:false}).first().click();await expect(page.getByRole('heading',{name:'Catálogo de productos'})).toBeVisible();
  for(const {name} of samples){
+  const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/products'&&new URL(r.url()).searchParams.get('q')===name&&r.ok());
   await search.fill(name);
-  await expect(page.getByRole('row').filter({hasText:name})).toHaveCount(1);
-  await expect(page.getByRole('row')).toHaveCount(2);
+  const result=await (await response).json();
+  expect(result.items.length).toBeGreaterThan(0);
+  await expect(page.getByRole('row').filter({hasText:name})).toHaveCount(result.items.length);
+  await expect(page.getByRole('row')).toHaveCount(result.items.length+1);
  }
  await search.fill('  PAPAS LAY  ');
- await expect(page.getByRole('row').filter({hasText:'Papas Lay’s clásicas'})).toBeVisible();
+ await expect(page.getByRole('row').filter({hasText:'Papas Lay’s clásicas'}).last()).toBeVisible();
  await search.fill('sin coincidencias');
  await expect(page.getByText('No hay productos que coincidan.',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:'Reportes',exact:false}).first().click();await expect(page.getByRole('button',{name:'Exportar CSV'})).toBeVisible();
@@ -120,6 +128,8 @@ test('API: trabajador sin privilegios, sesión revocada y DNI con ceros',async({
  expect((await api(request,'GET','/admin/database',undefined,workerToken)).status()).toBe(403);
  await page.goto('/administracion');await expect(page).toHaveURL(/login/);await page.getByLabel('DNI',{exact:true}).fill(dni);await page.getByLabel('Contraseña',{exact:true}).fill(next);await page.getByRole('button',{name:'Ingresar a mi tienda'}).click();await expect(page).toHaveURL(new URL('/',baseURL).href);await page.goto('/administracion');await expect(page).toHaveURL(new URL('/',baseURL).href);await expect(page.getByRole('button',{name:'Base de datos',exact:true})).not.toBeVisible();
  await page.screenshot({path:'docs/evidence/empleado-desktop.png',fullPage:true});
+ await expect(page.getByRole('button',{name:'Cerrar aviso de vencimiento'})).toBeVisible();
+ await page.getByRole('button',{name:'Cerrar aviso de vencimiento'}).click();
  await page.getByRole('button',{name:'Lotes',exact:false}).first().click();await page.getByText('＋ Ingresar lote y escanear producto',{exact:true}).click();await page.getByLabel('Buscar producto por nombre',{exact:true}).fill('Arroz');await page.getByRole('button',{name:'Buscar catálogo',exact:true}).click();await expect(page.getByRole('searchbox',{name:'Buscar',exact:true})).toHaveValue('');await expect(page.getByLabel('Producto y unidad base').locator('option')).not.toHaveCount(1);
  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.screenshot({path:'docs/evidence/empleado-mobile.png',fullPage:true});
  expect((await api(request,'POST','/admin/chat',{query:'ayuda'},workerToken)).status()).toBe(403);
@@ -131,6 +141,8 @@ test('API: trabajador sin privilegios, sesión revocada y DNI con ceros',async({
 test('escáner manual, código desconocido, permiso denegado y offline',async({page,context,request})=>{
  await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('Permiso denegado','NotAllowedError');};});
  const user=credentials();await page.goto('/login');await page.getByLabel('DNI',{exact:true}).fill(user.dni);await page.getByLabel('Contraseña',{exact:true}).fill(user.password);await page.getByRole('button',{name:'Ingresar a mi tienda'}).click();
+ await expect(page.getByRole('button',{name:'Cerrar aviso de vencimiento'})).toBeVisible();
+ await page.getByRole('button',{name:'Cerrar aviso de vencimiento'}).click();
  await page.getByRole('button',{name:'Lotes',exact:false}).first().click();await page.getByText('＋ Ingresar lote y escanear producto',{exact:true}).click();
  await page.getByLabel('Código EAN-13',{exact:true}).fill('7751271000016');await page.getByRole('button',{name:'Buscar código'}).click();await expect(page.getByRole('alert')).toContainText('checksum');
  await page.getByLabel('Código EAN-13',{exact:true}).fill('9999999999994');await page.getByRole('button',{name:'Buscar código'}).click();await expect(page.getByRole('alert')).toContainText('desconocido');

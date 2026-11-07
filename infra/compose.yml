@@ -11,7 +11,7 @@ services:
     ports: ["127.0.0.1:3307:3306"]
     volumes: ["mysql_data:/var/lib/mysql"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--protocol=tcp"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -57,6 +57,11 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       SMTP_SSL: ${SMTP_SSL:-false}
       SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      ALERT_EMAIL_ENABLED: ${ALERT_EMAIL_ENABLED:-false}
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-smtp}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-onboarding@resend.dev}
     depends_on:
       mysql:
         condition: service_healthy

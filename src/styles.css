@@ -363,3 +363,12 @@ dialog form > button { margin-top: 12px; }
   :root { --surface: #fff; }
   .login-card, .topbar { background: #fff; backdrop-filter: none; }
 }
+/* Aviso persistente hasta que el usuario lo cierre; no interrumpe la edición. */
+.critical-popup{position:fixed;top:88px;right:20px;z-index:20;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 110px);overflow:auto;padding:18px;background:#fff;border:2px solid #b42318;border-radius:16px;box-shadow:var(--shadow);color:var(--ink);overflow-wrap:anywhere}
+.critical-popup-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#9c2119}
+.critical-popup-heading strong{display:flex;align-items:center;gap:8px}
+.critical-popup p{margin:12px 0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.critical-popup small{color:var(--muted)}
+.sound-toggle{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;min-height:44px}
+.sound-toggle[aria-pressed="true"]{background:#e8f5ec;border-color:#267344;color:#19552f}
+@media(max-width:620px){.sound-toggle{padding:8px}.sound-toggle span{max-width:74px;font-size:11px;line-height:1.25}.critical-popup{top:78px;right:16px;max-height:calc(100dvh - 100px)}}

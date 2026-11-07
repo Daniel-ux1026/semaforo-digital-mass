@@ -1,0 +1,40 @@
+{
+  "started": "2026-11-07T17:41:51.387Z",
+  "finished": "2026-11-07T17:42:04.869Z",
+  "environment": "local Docker Compose semaforo-final-1107",
+  "healthy": true,
+  "results": [
+    {
+      "table": "productos",
+      "rows": 94,
+      "sha256": "e9700c61a3fde88ea50e4046ae847c68ceecea8f098f2495a464070d8a4dc80b",
+      "afterRows": 94,
+      "afterSha256": "e9700c61a3fde88ea50e4046ae847c68ceecea8f098f2495a464070d8a4dc80b",
+      "identical": true
+    },
+    {
+      "table": "lotes",
+      "rows": 95,
+      "sha256": "938e3c8b8a85b66a5b340638798a214b09f0f4c543b6d431f8545506a9f22507",
+      "afterRows": 95,
+      "afterSha256": "938e3c8b8a85b66a5b340638798a214b09f0f4c543b6d431f8545506a9f22507",
+      "identical": true
+    },
+    {
+      "table": "movimientos",
+      "rows": 100,
+      "sha256": "b677dfea196d11303b37922d7d7ab94f2b2b3c7b0623ee60f27d581a93987a4d",
+      "afterRows": 100,
+      "afterSha256": "b677dfea196d11303b37922d7d7ab94f2b2b3c7b0623ee60f27d581a93987a4d",
+      "identical": true
+    },
+    {
+      "table": "avisos_correo",
+      "rows": 31,
+      "sha256": "29cca3173fcacf2a6a961d9f9dc184b2c1048c33a09400c8730ee172f8f6816e",
+      "afterRows": 31,
+      "afterSha256": "29cca3173fcacf2a6a961d9f9dc184b2c1048c33a09400c8730ee172f8f6816e",
+      "identical": true
+    }
+  ]
+}

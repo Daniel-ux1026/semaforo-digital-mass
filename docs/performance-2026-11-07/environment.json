@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-07",
+  "timezone": "America/Lima",
+  "endpoint": "GET /api/alerts?state=ROJO&page=0",
+  "image": "grafana/k6@sha256:3e4186aea62e11a45560bfc51e19eeafe82fc07ce069c78aff44b7ff893d9a5e",
+  "k6Version": "2.3.0",
+  "runs": [
+    {
+      "name": "linea-base",
+      "vus": 1,
+      "started": "2026-11-07T16:54:00.507Z",
+      "finished": "2026-11-07T16:54:47.704Z",
+      "durationSeconds": 45,
+      "sleepSeconds": 1,
+      "exitCode": 0,
+      "samples": 32
+    },
+    {
+      "name": "normal",
+      "vus": 3,
+      "started": "2026-11-07T16:55:00.512Z",
+      "finished": "2026-11-07T16:55:47.787Z",
+      "durationSeconds": 45,
+      "sleepSeconds": 1,
+      "exitCode": 0,
+      "samples": 32
+    },
+    {
+      "name": "pico",
+      "vus": 10,
+      "started": "2026-11-07T16:56:00.508Z",
+      "finished": "2026-11-07T16:56:48.155Z",
+      "durationSeconds": 45,
+      "sleepSeconds": 1,
+      "exitCode": 99,
+      "samples": 32
+    }
+  ]
+}

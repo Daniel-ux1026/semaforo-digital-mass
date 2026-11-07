@@ -40,6 +40,58 @@ export class Workspace implements OnInit,OnDestroy {
  private expiryTimer?:ReturnType<typeof setInterval>;
  private expiryRevision=0;
  private dashboardRefreshing=false;
+ readonly emailStatus=signal<{enabled:boolean;smtpConfigured:boolean;recipient:string;items:RecordRow[]}|null>(null);
+ emailState(state:unknown){return ({PENDING:'Pendiente',PROCESSING:'Enviando',ACCEPTED:'Aceptado por el servicio de correo',FAILED:'Fallido',UNCERTAIN:'Envío sin confirmar',OBSOLETE:'Ya no requiere aviso',BASELINE:'Existente al activar (sin envío)'} as Record<string,string>)[String(state)]??String(state);}
+ readonly criticalNotices=signal<Lot[]>([]);
+ readonly soundEnabled=signal(false);
+ private seenCritical=new Set<string>();
+ private checkingCritical=false;
+ private disposed=false;
+ private alertAudio?:AudioContext;
+ private criticalKey(lot:Lot){return lot.id+':'+lot.state;}
+ async checkCriticalAlerts(){
+  if(this.checkingCritical||this.disposed||!this.api.online()||this.api.user()?.mustChange)return;
+  this.checkingCritical=true;
+  try{
+   const current:Lot[]=[];
+   for(const state of ['ROJO','VENCIDO']){
+    let page=0,more=true;
+    while(more){
+     const result=await this.api.get<Page<Lot>>('/alerts?state='+state+'&page='+page);
+     if(this.disposed)return;
+     current.push(...result.items.filter(lot=>lot.total>0&&lot.productActive!==false));
+     more=result.hasNext;page++;
+    }
+   }
+   const fresh=current.filter(lot=>!this.seenCritical.has(this.criticalKey(lot)));
+   const visible=new Set([...this.criticalNotices(),...fresh].map(lot=>this.criticalKey(lot)));
+   this.criticalNotices.set(current.filter(lot=>visible.has(this.criticalKey(lot))));
+   this.seenCritical=new Set(current.map(lot=>this.criticalKey(lot)));
+   if(fresh.length)this.playAlertSound();
+  }catch{/* Reintentar sin repetir los avisos ya vistos. */}
+  finally{this.checkingCritical=false;}
+ }
+ async toggleAlertSound(){
+  if(this.soundEnabled()){this.soundEnabled.set(false);return;}
+  try{
+   this.alertAudio??=new AudioContext();
+   await this.alertAudio.resume();
+   if(this.disposed)return;
+   this.soundEnabled.set(this.alertAudio.state==='running');this.playAlertSound();
+  }catch{this.soundEnabled.set(false);this.notice.set('El navegador no permite activar el sonido. Los avisos visuales siguen disponibles.');}
+ }
+ private playAlertSound(){
+  const audio=this.alertAudio;
+  if(!this.soundEnabled()||!audio||audio.state!=='running')return;
+  for(const [offset,frequency] of [[0,660],[0.22,880]]){
+   const oscillator=audio.createOscillator(),gain=audio.createGain(),start=audio.currentTime+offset;
+   oscillator.frequency.value=frequency;
+   gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(0.08,start+0.02);gain.gain.exponentialRampToValueAtTime(0.001,start+0.18);
+   oscillator.connect(gain);gain.connect(audio.destination);
+   oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
+   oscillator.start(start);oscillator.stop(start+0.2);
+  }
+ }
  private historyRevision=0;private loadRevision=0;private catalogRevision=0;private menuOpener?:HTMLElement;
  private readonly destroyRef=inject(DestroyRef);
  private readonly cancelInventoryLoad=new Subject<void>();
@@ -69,11 +121,13 @@ export class Workspace implements OnInit,OnDestroy {
   }
   this.expiryTimer=setInterval(()=>{
    if(document.hidden||!this.api.online())return;
+   void this.checkCriticalAlerts();
    if(this.notificationsOpen()&&this.notificationTab()==='expiry')void this.loadExpiryPreview();
    else void this.refreshDashboard();
   },45000);
  }
  ngOnDestroy(){
+  this.disposed=true;void this.alertAudio?.close().catch(()=>{});
   clearInterval(this.notificationTimer);clearInterval(this.expiryTimer);
   this.expiryRevision++;this.loadRevision++;this.catalogRevision++;this.stopCamera();
   clearTimeout(this.searchTimer);
@@ -132,12 +186,13 @@ export class Workspace implements OnInit,OnDestroy {
     if(!result||stamp!==this.loadRevision)return;
     this.products.set(result.items);this.hasNext.set(result.hasNext);
    }
-   else if(v==='Automatización'){const r=await this.api.get<Page<RecordRow>>('/admin/outbox/page?page='+page);if(stamp!==this.loadRevision)return;this.records.set(r.items);this.hasNext.set(r.hasNext);}
+   else if(v==='Automatización'){const r=await this.api.get<Page<RecordRow>>('/admin/outbox/page?page='+page);if(stamp!==this.loadRevision)return;this.records.set(r.items);this.hasNext.set(r.hasNext);this.emailStatus.set(await this.api.get<{enabled:boolean;smtpConfigured:boolean;recipient:string;items:RecordRow[]}>('/admin/email-alerts'));}
    else if(v==='Personal'||v==='Auditoría'||v==='Reportes'){
     const path=v==='Personal'?'/admin/users':v==='Auditoría'?'/admin/audit':'/admin/reports';
     const rows=await this.api.get<RecordRow[]>(path+'?page='+page+(v==='Reportes'?'&'+this.reportParams():''));if(stamp!==this.loadRevision)return;this.records.set(rows);this.hasNext.set(rows.length===25);
     if(v==='Reportes'){const summary=await this.api.get<RecordRow[]>('/admin/reports/summary?'+this.reportParams());if(stamp!==this.loadRevision)return;this.reportSummary.set(summary);}
    }
+   if(refreshRelated)void this.checkCriticalAlerts();
   }catch(e){if(stamp===this.loadRevision)this.error.set(this.api.error(e));}finally{if(stamp===this.loadRevision)this.loading.set(false);}
  }
  private setDashboard(d:Dashboard){this.states.set(d.states);this.evaluation.set(d.lastEvaluation);this.dashboardReady.set(true);}

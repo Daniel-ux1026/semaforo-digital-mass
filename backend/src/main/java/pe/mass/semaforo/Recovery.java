@@ -46,6 +46,10 @@ class RecoveryConfiguration {
 
 @Service
 class ResetMailer {
+ @Value("${MAIL_PROVIDER:smtp}") String provider="smtp";
+ @Value("${RESEND_API_KEY:}") String resendKey="";
+ @Value("${RESEND_FROM:onboarding@resend.dev}") String resendFrom="onboarding@resend.dev";
+ java.net.http.HttpClient mailClient=java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(java.net.http.HttpClient.Redirect.NEVER).build();
  @Value("${SMTP_HOST:}") String host;
  @Value("${SMTP_PORT:587}") int port;
  @Value("${SMTP_USERNAME:}") String username;
@@ -54,9 +58,13 @@ class ResetMailer {
  @Value("${SMTP_SSL:false}") boolean ssl;
  @Value("${SMTP_STARTTLS:true}") boolean startTls;
  @Value("${SMTP_ALLOW_LOCAL_PLAINTEXT:false}") boolean allowLocalPlaintext;
- boolean configured(){return !host.isBlank()&&!from.isBlank();}
+ boolean configured(){return "resend".equals(provider)?!resendKey.isBlank()&&!resendFrom.isBlank():"smtp".equals(provider)&&!host.isBlank()&&!from.isBlank();}
  void send(String recipient,String link) throws Exception {
-  if(!configured())throw new IllegalStateException("SMTP no configurado");
+  sendMessage(recipient,"Restablece tu contraseña · Semáforo Digital Mass","Hola,\n\nRecibimos una solicitud para restablecer la contraseña de tu usuario en Semáforo Digital de Tiendas Mass (proyecto académico).\n\nAbre este enlace para crear una nueva contraseña:\n"+link+"\n\nEl enlace vence en 20 minutos y puede utilizarse una sola vez. Si no solicitaste el cambio, ignora este correo: tu contraseña no cambiará.\n\nEquipo Semáforo Digital");
+ }
+ void sendMessage(String recipient,String subject,String body) throws Exception {
+  if(!configured())throw new IllegalStateException("Servicio de correo no configurado");
+  if("resend".equals(provider)){sendApi(recipient,subject,body);return;}
   if(!ssl&&!startTls&&!(allowLocalPlaintext&&Set.of("mailpit","localhost","127.0.0.1").contains(host)))throw new IllegalStateException("SMTP requiere TLS");
   SimpleEmail email=new SimpleEmail();email.setHostName(host);email.setSmtpPort(port);
   email.setCharset(StandardCharsets.UTF_8.name());email.setSSLOnConnect(ssl);
@@ -65,9 +73,24 @@ class ResetMailer {
   email.setSocketConnectionTimeout(Duration.ofSeconds(5));email.setSocketTimeout(Duration.ofSeconds(10));
   if(!username.isBlank())email.setAuthentication(username,password);
   email.setFrom(from,"Semáforo Digital · Tiendas Mass");email.addTo(recipient);
-  email.setSubject("Restablece tu contraseña · Semáforo Digital Mass");
-  email.setMsg("Hola,\n\nRecibimos una solicitud para restablecer la contraseña de tu usuario en Semáforo Digital de Tiendas Mass (proyecto académico).\n\nAbre este enlace para crear una nueva contraseña:\n"+link+"\n\nEl enlace vence en 20 minutos y puede utilizarse una sola vez. Si no solicitaste el cambio, ignora este correo: tu contraseña no cambiará.\n\nEquipo Semáforo Digital");
+  email.setSubject(subject);email.setMsg(body);
   email.send();
+ }
+ void sendApi(String recipient,String subject,String body) throws Exception {
+  var mapper=new com.fasterxml.jackson.databind.ObjectMapper();
+  String payload=mapper.writeValueAsString(Map.of("from",resendFrom,"to",List.of(recipient),"subject",subject,"text",body));
+  var request=java.net.http.HttpRequest.newBuilder(java.net.URI.create("https://api.resend.com/emails"))
+   .timeout(Duration.ofSeconds(15)).header("Authorization","Bearer "+resendKey).header("Content-Type","application/json")
+   .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload,StandardCharsets.UTF_8)).build();
+  java.net.http.HttpResponse<String> response;
+  try{response=mailClient.send(request,java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));}
+  catch(InterruptedException e){Thread.currentThread().interrupt();throw e;}
+  if(response.statusCode()<200||response.statusCode()>=300)throw new MailApiRejected(response.statusCode());
+  if(mapper.readTree(response.body()).path("id").asText().isBlank())throw new IllegalStateException("El proveedor no confirmó el mensaje.");
+ }
+ static final class MailApiRejected extends Exception {
+  final int status;
+  MailApiRejected(int status){super("Proveedor de correo rechazó la solicitud (HTTP "+status+").");this.status=status;}
  }
 }
 

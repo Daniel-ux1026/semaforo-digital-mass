@@ -1,0 +1,153 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /scripts/alerts.k6.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 3 max VUs, 50s max duration (incl. graceful stop):
+              * alerts: 3 looping VUs for 45s (gracefulStop: 5s)
+
+
+running (01.0s), 3/3 VUs, 0 complete and 0 interrupted iterations
+alerts   [   2% ] 3 VUs  01.0s/45s
+
+running (02.0s), 3/3 VUs, 3 complete and 0 interrupted iterations
+alerts   [   4% ] 3 VUs  02.0s/45s
+
+running (03.0s), 3/3 VUs, 6 complete and 0 interrupted iterations
+alerts   [   7% ] 3 VUs  03.0s/45s
+
+running (04.0s), 3/3 VUs, 9 complete and 0 interrupted iterations
+alerts   [   9% ] 3 VUs  04.0s/45s
+
+running (05.0s), 3/3 VUs, 12 complete and 0 interrupted iterations
+alerts   [  11% ] 3 VUs  05.0s/45s
+
+running (06.0s), 3/3 VUs, 15 complete and 0 interrupted iterations
+alerts   [  13% ] 3 VUs  06.0s/45s
+
+running (07.0s), 3/3 VUs, 18 complete and 0 interrupted iterations
+alerts   [  16% ] 3 VUs  07.0s/45s
+
+running (08.0s), 3/3 VUs, 21 complete and 0 interrupted iterations
+alerts   [  18% ] 3 VUs  08.0s/45s
+
+running (09.0s), 3/3 VUs, 24 complete and 0 interrupted iterations
+alerts   [  20% ] 3 VUs  09.0s/45s
+
+running (10.0s), 3/3 VUs, 27 complete and 0 interrupted iterations
+alerts   [  22% ] 3 VUs  10.0s/45s
+
+running (11.0s), 3/3 VUs, 30 complete and 0 interrupted iterations
+alerts   [  24% ] 3 VUs  11.0s/45s
+
+running (12.0s), 3/3 VUs, 33 complete and 0 interrupted iterations
+alerts   [  27% ] 3 VUs  12.0s/45s
+
+running (13.0s), 3/3 VUs, 36 complete and 0 interrupted iterations
+alerts   [  29% ] 3 VUs  13.0s/45s
+
+running (14.0s), 3/3 VUs, 39 complete and 0 interrupted iterations
+alerts   [  31% ] 3 VUs  14.0s/45s
+
+running (15.0s), 3/3 VUs, 42 complete and 0 interrupted iterations
+alerts   [  33% ] 3 VUs  15.0s/45s
+
+running (16.0s), 3/3 VUs, 45 complete and 0 interrupted iterations
+alerts   [  36% ] 3 VUs  16.0s/45s
+
+running (17.0s), 3/3 VUs, 48 complete and 0 interrupted iterations
+alerts   [  38% ] 3 VUs  17.0s/45s
+
+running (18.0s), 3/3 VUs, 51 complete and 0 interrupted iterations
+alerts   [  40% ] 3 VUs  18.0s/45s
+
+running (19.0s), 3/3 VUs, 54 complete and 0 interrupted iterations
+alerts   [  42% ] 3 VUs  19.0s/45s
+
+running (20.0s), 3/3 VUs, 57 complete and 0 interrupted iterations
+alerts   [  44% ] 3 VUs  20.0s/45s
+
+running (21.0s), 3/3 VUs, 60 complete and 0 interrupted iterations
+alerts   [  47% ] 3 VUs  21.0s/45s
+
+running (22.0s), 3/3 VUs, 63 complete and 0 interrupted iterations
+alerts   [  49% ] 3 VUs  22.0s/45s
+
+running (23.0s), 3/3 VUs, 66 complete and 0 interrupted iterations
+alerts   [  51% ] 3 VUs  23.0s/45s
+
+running (24.0s), 3/3 VUs, 69 complete and 0 interrupted iterations
+alerts   [  53% ] 3 VUs  24.0s/45s
+
+running (25.0s), 3/3 VUs, 72 complete and 0 interrupted iterations
+alerts   [  56% ] 3 VUs  25.0s/45s
+
+running (26.0s), 3/3 VUs, 75 complete and 0 interrupted iterations
+alerts   [  58% ] 3 VUs  26.0s/45s
+
+running (27.0s), 3/3 VUs, 78 complete and 0 interrupted iterations
+alerts   [  60% ] 3 VUs  27.0s/45s
+
+running (28.0s), 3/3 VUs, 81 complete and 0 interrupted iterations
+alerts   [  62% ] 3 VUs  28.0s/45s
+
+running (29.0s), 3/3 VUs, 84 complete and 0 interrupted iterations
+alerts   [  64% ] 3 VUs  29.0s/45s
+
+running (30.0s), 3/3 VUs, 87 complete and 0 interrupted iterations
+alerts   [  67% ] 3 VUs  30.0s/45s
+
+running (31.0s), 3/3 VUs, 90 complete and 0 interrupted iterations
+alerts   [  69% ] 3 VUs  31.0s/45s
+
+running (32.0s), 3/3 VUs, 93 complete and 0 interrupted iterations
+alerts   [  71% ] 3 VUs  32.0s/45s
+
+running (33.0s), 3/3 VUs, 96 complete and 0 interrupted iterations
+alerts   [  73% ] 3 VUs  33.0s/45s
+
+running (34.0s), 3/3 VUs, 99 complete and 0 interrupted iterations
+alerts   [  76% ] 3 VUs  34.0s/45s
+
+running (35.0s), 3/3 VUs, 102 complete and 0 interrupted iterations
+alerts   [  78% ] 3 VUs  35.0s/45s
+
+running (36.0s), 3/3 VUs, 105 complete and 0 interrupted iterations
+alerts   [  80% ] 3 VUs  36.0s/45s
+
+running (37.0s), 3/3 VUs, 108 complete and 0 interrupted iterations
+alerts   [  82% ] 3 VUs  37.0s/45s
+
+running (38.0s), 3/3 VUs, 111 complete and 0 interrupted iterations
+alerts   [  84% ] 3 VUs  38.0s/45s
+
+running (39.0s), 3/3 VUs, 114 complete and 0 interrupted iterations
+alerts   [  87% ] 3 VUs  39.0s/45s
+
+running (40.0s), 3/3 VUs, 117 complete and 0 interrupted iterations
+alerts   [  89% ] 3 VUs  40.0s/45s
+
+running (41.0s), 3/3 VUs, 120 complete and 0 interrupted iterations
+alerts   [  91% ] 3 VUs  41.0s/45s
+
+running (42.0s), 3/3 VUs, 123 complete and 0 interrupted iterations
+alerts   [  93% ] 3 VUs  42.0s/45s
+
+running (43.0s), 3/3 VUs, 126 complete and 0 interrupted iterations
+alerts   [  96% ] 3 VUs  43.0s/45s
+
+running (44.0s), 3/3 VUs, 129 complete and 0 interrupted iterations
+alerts   [  98% ] 3 VUs  44.0s/45s
+
+running (45.0s), 3/3 VUs, 132 complete and 0 interrupted iterations
+alerts   [ 100% ] 3 VUs  45.0s/45s
+
+running (45.5s), 0/3 VUs, 135 complete and 0 interrupted iterations
+alerts ✓ [ 100% ] 3 VUs  45s

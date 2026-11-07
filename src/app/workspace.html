@@ -1,3 +1,13 @@
+@if(criticalNotices().length&&!menu()&&!selected()&&!resetTarget()&&!notificationsOpen()&&!api.user()?.mustChange){
+ <section class="critical-popup" role="alert" aria-label="Aviso de vencimiento">
+  <div class="critical-popup-heading"><strong><mass-icon name="Alertas"/> Atención a los vencimientos</strong><button class="icon-button" aria-label="Cerrar aviso de vencimiento" (click)="criticalNotices.set([])"><mass-icon name="close"/></button></div>
+  @for(lot of criticalNotices().slice(0,3);track lot.id){
+   <p><strong>{{lot.product}}</strong><br>Lote {{lot.code}} · {{expiryLabel(lot.days)}}<br><small>Fecha de vencimiento: {{lot.expiry}} · Stock: {{lot.total}}</small></p>
+  }
+  @if(criticalNotices().length>3){<p>Y {{criticalNotices().length-3}} lote(s) más.</p>}
+  <button (click)="criticalNotices.set([]);go('Alertas')">Ver alertas</button>
+ </section>
+}
 <div class="app-shell">
  <aside class="sidebar" [class.open]="menu()" aria-label="Menú principal">
   <button class="menu-close" aria-label="Cerrar menú" (click)="toggleMenu(false)"><mass-icon name="close"/></button>
@@ -16,6 +26,7 @@
    <div class="topbar-actions">
     <time class="today" [attr.datetime]="today()"><mass-icon name="calendar"/> {{today()}}</time>
     @if(!api.user()?.mustChange){
+     <button class="sound-toggle" (click)="toggleAlertSound()" [attr.aria-pressed]="soundEnabled()" [attr.aria-label]="soundEnabled()?'Desactivar sonido de alertas':'Activar sonido de alertas'"><mass-icon name="bell"/><span>Sonido {{soundEnabled()?'activado':'desactivado'}}</span></button>
      <button #notificationTrigger class="notification-button" (click)="toggleNotifications()" aria-label="Notificaciones" [attr.aria-expanded]="notificationsOpen()" [attr.aria-controls]="notificationsOpen()?'notification-panel':null">
       <mass-icon name="bell"/><span class="notification-label">Notificaciones</span>
       @if(notificationCount()>0){<span class="notification-badge">{{notificationCount()>99?'99+':notificationCount()}}</span>}
@@ -125,7 +136,19 @@
    }
    @if(view()==='Reportes'){<form class="panel filters" [formGroup]="reportForm" (ngSubmit)="filter()"><label>Desde<input type="date" formControlName="from"></label><label>Hasta<input type="date" formControlName="to"></label><label>Buscar producto por nombre o SKU<input [formControl]="reportQuery"></label><button type="button" (click)="searchReportProducts()" [disabled]="busy()">Buscar productos</button><label>Producto<select formControlName="productId"><option value="">Todos los productos</option>@for(p of reportProducts();track p.id){<option [value]="p.id">{{p.name}} · {{p.sku}}</option>}</select></label><label>Acción<select formControlName="type"><option value="">Todas</option><option>INGRESO</option><option>PROMOCION</option><option>VENTA</option><option>MERMA</option><option>AJUSTE</option><option>REVERSO</option></select></label><button>Consultar</button><button type="button" (click)="download()" [disabled]="busy()"><mass-icon name="download"/> Exportar CSV</button></form>}
    @if(view()==='Reportes'){@for(s of reportSummary();track s['unit']){<section class="panel"><h2>{{s['unit']}} · resumen del rango y filtros</h2><p>{{reportForm.controls.type.value?'Merma según filtro':'Merma neta'}}: <strong>{{s['wasteQuantity']}}</strong> · Pérdida valorizada: <strong>S/ {{ $any(s['valuedLoss'])|number:'1.2-2' }}</strong> · Cantidad pendiente de costo: <strong>{{s['pendingQuantity']}}</strong> · Movimientos: {{s['movements']}}</p></section>}}
-   @if(view()==='Automatización'){<section class="panel section-heading"><h2>Revisión de lotes</h2><button class="primary" (click)="evaluate()" [disabled]="busy()"><mass-icon name="refresh"/> Revisar vencimientos</button></section>}
+   @if(view()==='Automatización'){
+    <section class="panel section-heading"><h2>Revisión de lotes</h2><button class="primary" (click)="evaluate()" [disabled]="busy()"><mass-icon name="refresh"/> Revisar vencimientos</button></section>
+    @if(emailStatus();as mail){
+     <section class="panel"><h2>Alertas por correo</h2><p>{{mail.enabled?'Envío automático activado':'Envío automático desactivado'}}</p>
+      <p class="muted">{{mail.smtpConfigured?'Servicio de correo configurado.':'Falta configurar el servicio de correo.'}} @if(mail.recipient){Destinatario: {{mail.recipient}}}</p>
+      <p class="muted">Avisos para lotes críticos y vencidos con stock. «Aceptado por el servicio de correo» confirma que el proveedor recibió el mensaje; revisa también spam.</p>
+      <div class="table-wrap"><table><thead><tr><th>Producto / lote</th><th>Estado del lote</th><th>Correo</th><th>Intentos</th></tr></thead><tbody>
+       @for(item of mail.items;track item['id']){<tr><td>{{item['product']}} · {{item['code']}}</td><td>{{item['estado_lote']}}</td><td>{{emailState(item['estado'])}} @if(item['ultimo_error']){<small>{{item['ultimo_error']}}</small>}</td><td>{{item['intentos']}}</td></tr>}
+       @empty{<tr><td colspan="4">Todavía no hay avisos por correo.</td></tr>}
+      </tbody></table></div>
+     </section>
+    }
+   }
    @if(['Personal','Reportes','Auditoría','Automatización','Base de datos'].includes(view())){<section class="panel table-wrap"><table role="table"><thead role="rowgroup"><tr role="row">@for(c of columns();track c){<th role="columnheader">{{columnName(c)}}</th>}@if(view()==='Personal'||view()==='Automatización'){<th role="columnheader">Acciones</th>}</tr></thead><tbody role="rowgroup">@for(r of records();track r['id']){<tr role="row">@for(c of columns();track c){<td role="cell" [class.lead-cell]="$first" [attr.data-label]="columnName(c)">{{cell(c,r[c])}}</td>}@if(view()==='Personal'){<td role="cell" class="actions" data-label="Acciones"><button (click)="setPerson(r)">Editar</button><button (click)="resetPassword(r)">Restablecer</button>@if(r['role']==='WORKER'){<button (click)="assignSupervisor(r)" [disabled]="busy()">Asignar supervisor</button>}@if(r['active']){<button (click)="deletePerson(r)" [disabled]="busy()">Eliminar (baja)</button>}</td>}@if(view()==='Automatización'){<td role="cell" class="actions" data-label="Acciones">@if(r['status']==='FAILED'){<button (click)="retryEvent(r)" [disabled]="busy()||!api.online()">Reintentar</button>}@else{—}</td>}</tr>}@empty{<tr role="row"><td role="cell" class="empty">No hay registros para mostrar.</td></tr>}</tbody></table><div class="pagination"><button (click)="paginate(-1)" [disabled]="page()===0||loading()">Anterior</button><span>Página {{page()+1}}</span><button (click)="paginate(1)" [disabled]="!hasNext()||loading()">Siguiente</button></div></section>}
    @if(view()==='Mi cuenta'){<section class="panel account">@if(!admin()){<h2>Contraseña</h2><p>Si necesitas cambiarla, envía una solicitud al programador.</p><button class="primary" (click)="requestPassword()" [disabled]="busy()||!api.online()">Enviar solicitud al programador</button>}@else{@if(api.user()?.mustChange){<div class="notice">Debes cambiar tu contraseña temporal antes de operar.</div>}<h2>Cambiar contraseña</h2><p>Usa entre 12 y 72 caracteres. Todas tus sesiones se cerrarán.</p><form [formGroup]="passwordForm" (ngSubmit)="changePassword()"><label>Contraseña actual<input type="password" formControlName="current" autocomplete="current-password"></label><label>Nueva contraseña<input type="password" formControlName="next" autocomplete="new-password"></label><button class="primary" [disabled]="busy()||passwordForm.invalid">Actualizar contraseña</button></form>}</section>}
   </main>

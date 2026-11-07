@@ -23,8 +23,11 @@ printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --passw
 unset REGISTRY_TOKEN
 compose=(docker compose --env-file infra/.env -f infra/compose.yml -f infra/compose.release.yml --profile full)
 "${compose[@]}" pull api web chatbot
-"${compose[@]}" up -d --no-build mysql n8n api
+"${compose[@]}" up -d --wait mysql n8n
+node scripts/harden-db.mjs --prepare
+"${compose[@]}" up -d --no-build api
 node scripts/harden-db.mjs
+"${compose[@]}" restart api
 "${compose[@]}" up -d --no-build api web chatbot
 healthy=false
 for attempt in {1..60}; do

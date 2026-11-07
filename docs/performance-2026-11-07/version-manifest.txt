@@ -1,0 +1,9 @@
+Fecha de medición: 2026-11-07, America/Lima
+Base Git: 9461354a8767f7bf2ab317e485a8d77f8ce21eca
+Rama local: codex/preparar-version-final
+Estado: cambios locales sin publicar en GitHub
+087C79762CB5CD2257DBB45CBEFD293F1AEF17B7CC140660230719207B338190  backend/src/main/java/pe/mass/semaforo/Inventory.java
+1064064CA3FE01DAEE9224BA659E32089994AA1EFB2898D12D15D20364E1D58D  backend/src/main/java/pe/mass/semaforo/Security.java
+312B2A3C7DE101979ABBA704181BB6C706165E5BF79A072C492B94EBEEE19260  backend/src/main/java/pe/mass/semaforo/EmailAlerts.java
+76043736D8B0FFA44CF317BDCBB0D5844650F0E363EDAC00133B550EBC584984  backend/src/main/resources/application.yml
+B7CD08F82ED417BF233031AD5C65E9BC62F0BC0161EF1E1DB044559BE4A3583F  tests/performance/alerts.k6.js

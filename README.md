@@ -8,7 +8,17 @@ Proyecto académico del curso Integrador II de la Universidad Tecnológica del P
 
 [Funciones](#qué-incluye) · [Capturas](#vista-previa) · [Instalación](#cómo-abrirla) · [Arquitectura](#arquitectura) · [Base de datos](#base-de-datos) · [Pruebas](#pruebas) · [CI/CD](#estado-de-cicd)
 
-## Objetivos
+## Avisos de vencimiento en pantalla
+
+El servidor también incorpora [alertas por correo y su historial](docs/alertas-correo.md). El envío a Gmail se verificó con un lote de demostración; la activación automática se configura por separado mediante variables privadas.
+
+La aplicación muestra un aviso con producto, lote, fecha y saldo cuando detecta lotes críticos o vencidos con stock. Revisa todas las páginas de alertas al actualizar o cambiar de apartado y cada 45 segundos mientras la pestaña está visible y conectada.
+
+El botón **Sonido desactivado** permite habilitar una señal breve; requiere pulsarlo en cada nueva sesión de página por las restricciones del navegador. Al cerrar un aviso, no se repite por el mismo lote y estado durante esa sesión. Si pasa de crítico a vencido, vuelve a avisar. Al recargar la página se inicia una nueva sesión de avisos.
+
+El aviso visual y el sonido requieren mantener abierta la aplicación. El correo es independiente: puede enviarse con el navegador cerrado mientras el servidor y MySQL estén encendidos y el envío esté configurado y activado. No se implementaron envíos por WhatsApp ni notificaciones del sistema con la aplicación cerrada. Los umbrales de vencimiento son los configurados para cada producto.
+
+## Objetivos del sistema
 
 - Centralizar el registro de productos, lotes y cantidades disponibles.
 - Priorizar los lotes próximos a vencer para facilitar su revisión.

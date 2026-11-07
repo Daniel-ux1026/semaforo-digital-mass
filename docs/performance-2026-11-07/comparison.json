@@ -1,0 +1,89 @@
+[
+  {
+    "name": "linea-base",
+    "label": "Línea base",
+    "total": 45,
+    "rps": 0.9874877484441346,
+    "avg": 11.471228844444443,
+    "p95": 15.034572599999995,
+    "errors": 0,
+    "ok": 45,
+    "limited": 0,
+    "other": 0,
+    "thresholds": {
+      "operation_failed": {
+        "rate<0.01": {
+          "ok": true
+        }
+      },
+      "successful_duration": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "checks": {
+        "rate>0.99": {
+          "ok": true
+        }
+      }
+    }
+  },
+  {
+    "name": "normal",
+    "label": "Demanda normal",
+    "total": 135,
+    "rps": 2.9652116480150337,
+    "avg": 10.522866562962962,
+    "p95": 12.6701435,
+    "errors": 0,
+    "ok": 135,
+    "limited": 0,
+    "other": 0,
+    "thresholds": {
+      "checks": {
+        "rate>0.99": {
+          "ok": true
+        }
+      },
+      "successful_duration": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "operation_failed": {
+        "rate<0.01": {
+          "ok": true
+        }
+      }
+    }
+  },
+  {
+    "name": "pico",
+    "label": "Demanda pico",
+    "total": 450,
+    "rps": 9.92433594792975,
+    "avg": 10.474808366666661,
+    "p95": 16.0168163,
+    "errors": 46.666666666666664,
+    "ok": 240,
+    "limited": 210,
+    "other": 0,
+    "thresholds": {
+      "successful_duration": {
+        "p(95)<1000": {
+          "ok": true
+        }
+      },
+      "checks": {
+        "rate>0.99": {
+          "ok": false
+        }
+      },
+      "operation_failed": {
+        "rate<0.01": {
+          "ok": false
+        }
+      }
+    }
+  }
+]

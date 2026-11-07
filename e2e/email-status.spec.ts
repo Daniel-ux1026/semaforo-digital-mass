@@ -1,0 +1,21 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+test('administrador consulta el estado del correo y su historial',async({page})=>{
+ const user=JSON.parse(readFileSync('.local/demo-user.json','utf8'));
+ await page.goto('/login');
+ await page.getByLabel('DNI',{exact:true}).fill(user.dni);
+ await page.getByLabel('Contraseña',{exact:true}).fill(user.password);
+ await Promise.all([page.waitForResponse(r=>r.url().includes('/alerts?state=VENCIDO')&&r.ok()),page.getByRole('button',{name:'Ingresar a mi tienda'}).click()]);
+ const close=page.getByRole('button',{name:'Cerrar aviso de vencimiento'});
+ if(await close.isVisible())await close.click();
+ await page.getByRole('button',{name:'Automatización',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Alertas por correo'})).toBeVisible();
+ await expect(page.getByText('Servicio de correo configurado.',{exact:false})).toBeVisible();
+ await expect(page.getByText('Aceptado por el servicio de correo',{exact:true}).first()).toBeVisible();
+ await page.screenshot({path:'docs/evidence/email-status-desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ await expect(page.getByRole('complementary',{name:'Menú principal'})).not.toBeVisible();
+ await expect(page.getByRole('heading',{name:'Alertas por correo'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'docs/evidence/email-status-mobile.png'});
+});
