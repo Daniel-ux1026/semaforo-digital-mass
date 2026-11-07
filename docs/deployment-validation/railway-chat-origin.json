@@ -1,0 +1,11 @@
+{
+  "requested": "2026-11-07T21:59:49.482Z",
+  "reason": "WebSocket rechazado por origen web distinto del host del proxy",
+  "config": {
+    "STREAMLIT_BROWSER_SERVER_ADDRESS": "semaforo-digital-mass-production.up.railway.app",
+    "STREAMLIT_BROWSER_SERVER_PORT": "443"
+  },
+  "corsProtectionRetained": true,
+  "xsrfProtectionRetained": true,
+  "serviceInstanceDeployV2": "436d638b-aad7-4482-b36f-8bb896c45fd7"
+}

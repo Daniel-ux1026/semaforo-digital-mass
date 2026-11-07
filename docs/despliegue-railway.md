@@ -24,7 +24,7 @@ Figura 1. Captura real de Railway con los cuatro servicios en línea y el volume
 
 4. Se configuraron las raíces de los Dockerfile, puertos, comprobaciones de salud y variables privadas. Las contraseñas de MySQL, JWT_SECRET, RESEND_API_KEY y OPENAI_API_KEY permanecen fuera del repositorio.
 
-5. Se desplegaron API y chatbot, y después la web con sus dominios configurados. Se corrigieron la profundidad de validación TLS del proxy y el puerto de Streamlit. Las rutas públicas quedaron operativas.
+5. Se desplegaron API y chatbot, y después la web con sus dominios configurados. Se corrigieron la profundidad de validación TLS, el puerto de Streamlit y su dirección pública para aceptar el WebSocket desde la web, manteniendo CORS y XSRF activos.
 
 6. Se creó una cuenta ADMIN ficticia autorizada para la demostración, conservando las cuentas anteriores. Se ejecutaron las pruebas de interfaz y API, el correo real, la persistencia y la regresión. La clave SSH temporal se revocó al terminar el mantenimiento.
 
@@ -33,7 +33,7 @@ Figura 1. Captura real de Railway con los cuatro servicios en línea y el volume
 | Web | / · 8080 | API_HOST y CHATBOT_HOST sin protocolo ni ruta; proxy HTTPS con verificación TLS y profundidad 3. |
 | API | /backend · 8080 | APP_ORIGIN público; SECURE_COOKIE=true; SERVER_ADDRESS=0.0.0.0; JVM 128–384 MiB. |
 | MySQL | Volumen · 3306 | /var/lib/mysql; DNS privado mysql.railway.internal; base railway; buffer InnoDB 128 MiB. |
-| Chatbot | /chatbot · 8501 | BACKEND_URL por HTTPS; OPENAI_MODEL=gpt-4.1-mini; salud /chat/_stcore/health. |
+| Chatbot | /chatbot · 8501 | BACKEND_URL por HTTPS; OPENAI_MODEL=gpt-4.1-mini. STREAMLIT_BROWSER_SERVER_ADDRESS con dominio web; STREAMLIT_BROWSER_SERVER_PORT=443. |
 
 MySQL utiliza una imagen fijada por digest, registrada en railway-services.json. No se añadió un acceso público a la base. El despliegue requiere la configuración privada además del código.
 
@@ -110,6 +110,8 @@ Fuentes verificables: docs/deployment-validation/railway-persistence.json y rail
 
 Los seis casos principales comprobaron funciones anteriores junto con las nuevas alertas. Se aprobaron además la revisión del correo ya activado. La clave de GPT quedó configurada, pero la consulta externa no se considera validada en este informe.
 
+La prueba de GPT no aprobó: OpenAI devolvió HTTP 401 con código expired_secret_key. La conexión WebSocket del chatbot se corrigió y un origen ajeno siguió siendo rechazado con 403; para validar las respuestas del modelo se requiere reemplazar la clave vencida y repetir el caso. El intento fallido no modificó el inventario.
+
 Antes del despliegue se aprobaron 36 pruebas Java/MySQL y 11 del frontend, junto con la comprobación TypeScript local. GitHub Actions está pausado: no se presenta una ejecución de integración continua como aprobada. Las mediciones de carga del punto 22 fueron locales; no se ha medido una capacidad máxima de Railway.
 
 La protección del último administrador se comprobó en las pruebas Java/MySQL aisladas. En la base compartida se omitió expresamente esa modificación para conservar las cuentas anteriores. El rol SUPERVISOR está definido en el código, pero no tuvo un recorrido público independiente durante esta validación.
@@ -122,6 +124,7 @@ La protección del último administrador se comprobó en las pruebas Java/MySQL 
 | Remitente Resend de demostración | Solo destinatario autorizado de la cuenta; otros correos requieren dominio verificado. |
 | Avisos de dependencias | El push informó 31 alertas Dependabot de la rama predeterminada: 11 altas, 16 moderadas y 4 bajas. Evaluar aplicabilidad y corregir. |
 | Restauración con motor distinto | Ensayar en un entorno aislado con la misma versión MySQL de Railway. |
+| Clave GPT vencida | OpenAI: HTTP 401 / expired_secret_key. Reemplazar la clave privada y repetir la prueba. |
 
 ## Procedimiento para regresar a una versión estable
 
